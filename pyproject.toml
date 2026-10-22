@@ -1,0 +1,27 @@
+[project]
+name = "claudetrader"
+version = "0.1.0"
+description = "Bot de trading autonome : Claude décide, Interactive Brokers exécute, des garde-fous codés en dur encadrent."
+requires-python = ">=3.10"
+dependencies = [
+  "ib_async==2.1.0",
+  "anthropic==2.1.0",
+  "pydantic>=2.7",
+  "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+claudetrader = "claudetrader.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["claudetrader*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
