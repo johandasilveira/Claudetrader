@@ -63,14 +63,28 @@ class IBKRBroker:
 
     # ---- lecture ----
 
-    def _account_value(self, tag: str) -> float:
+    def _account_value(self, tag: str) -> tuple[float, str]:
+        """Valeur d'un tag de compte et sa devise.
+
+        IBKR exprime NetLiquidation / AvailableFunds dans la devise de base du compte
+        (EUR pour un compte européen). On préfère la devise configurée, puis BASE,
+        puis la première valeur disponible.
+        """
+        candidates: dict[str, float] = {}
         for v in self.ib.accountValues(self.account):
-            if v.tag == tag and v.currency in (self.settings.currency, "BASE", ""):
-                try:
-                    return float(v.value)
-                except ValueError:
-                    continue
-        return 0.0
+            if v.tag != tag:
+                continue
+            try:
+                candidates[v.currency] = float(v.value)
+            except ValueError:
+                continue
+        if not candidates:
+            return 0.0, ""
+        for cur in (self.settings.currency, "BASE", ""):
+            if cur in candidates:
+                return candidates[cur], cur
+        cur, val = next(iter(candidates.items()))
+        return val, cur
 
     def _daily_pnl(self) -> float:
         # Le PnL quotidien n'est pas dans accountValues : on l'interroge via reqPnL.
@@ -126,15 +140,23 @@ class IBKRBroker:
             bars = self._bars(symbol)
             last = bars[-1].close if bars else None
             market.append(SymbolData(symbol=symbol, last_price=last, bars=bars))
+        net_liq, net_cur = self._account_value("NetLiquidation")
+        available, _ = self._account_value("AvailableFunds")
+        account_cur = net_cur if net_cur not in ("", "BASE") else self.settings.currency
+        if account_cur != self.settings.currency:
+            log.info(
+                "Devise de base du compte : %s (les titres sont en %s ; les limites s'appliquent telles quelles).",
+                account_cur, self.settings.currency,
+            )
         return AccountSnapshot(
             account=self.account,
-            net_liquidation=self._account_value("NetLiquidation"),
-            available_funds=self._account_value("AvailableFunds"),
+            net_liquidation=net_liq,
+            available_funds=available,
             daily_pnl=self._daily_pnl(),
             positions=positions,
             open_orders=open_orders,
             market=market,
-            currency=self.settings.currency,
+            currency=account_cur,
             timestamp=datetime.now(timezone.utc).isoformat(timespec="seconds"),
         )
 
