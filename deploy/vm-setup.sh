@@ -30,11 +30,12 @@ if [[ ! -d "$TARGET" ]]; then
 else
   git -C "$TARGET" pull -q
 fi
-if [[ -n "$REAL_USER" ]]; then chown -R "$REAL_USER":"$REAL_USER" "$TARGET"; fi
 if [[ ! -f "$TARGET/.env" ]]; then
   cp "$TARGET/.env.example" "$TARGET/.env"
   grep -q '^JAVA_HEAP_SIZE=' "$TARGET/.env" || echo 'JAVA_HEAP_SIZE=512' >> "$TARGET/.env"
 fi
+# Après la création de .env, sinon le fichier reste à root et nano refuse d'écrire.
+if [[ -n "$REAL_USER" ]]; then chown -R "$REAL_USER":"$REAL_USER" "$TARGET"; fi
 
 free -h | sed -n 1,3p
 cat <<MSG
