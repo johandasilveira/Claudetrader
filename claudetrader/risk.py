@@ -41,6 +41,8 @@ class RiskManager:
             return RiskVerdict(d, False, f"{d.symbol} n'est pas dans l'univers autorisé.")
         if d.quantity <= 0:
             return RiskVerdict(d, False, "Quantité nulle ou négative.")
+        if not self.s.allow_fractional and d.quantity != int(d.quantity):
+            return RiskVerdict(d, False, f"Quantité fractionnaire {d.quantity} alors que ALLOW_FRACTIONAL=false.")
         if orders_today >= self.s.max_orders_per_day:
             return RiskVerdict(d, False, f"Limite de {self.s.max_orders_per_day} ordres par jour atteinte.")
 
@@ -63,6 +65,8 @@ class RiskManager:
             ref_price = price
 
         notional = d.quantity * ref_price
+        if notional < self.s.min_order_value:
+            return RiskVerdict(d, False, f"Ordre de {notional:.2f} < MIN_ORDER_VALUE {self.s.min_order_value:.2f}.")
         if notional > self.s.max_order_value:
             return RiskVerdict(d, False, f"Ordre de {notional:.2f} > MAX_ORDER_VALUE {self.s.max_order_value:.2f}.")
 

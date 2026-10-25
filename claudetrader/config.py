@@ -56,6 +56,8 @@ class Settings:
     max_orders_per_day: int = 6
     max_limit_deviation_pct: float = 3.0
     allow_short: bool = False
+    allow_fractional: bool = False
+    min_order_value: float = 1.0
 
     # Sécurité
     dry_run: bool = True
@@ -117,6 +119,8 @@ def load_settings(env_file: str | None = ".env") -> Settings:
         max_orders_per_day=_int("MAX_ORDERS_PER_DAY", 6),
         max_limit_deviation_pct=_float("MAX_LIMIT_DEVIATION_PCT", 3.0),
         allow_short=_bool(os.getenv("ALLOW_SHORT"), False),
+        allow_fractional=_bool(os.getenv("ALLOW_FRACTIONAL"), False),
+        min_order_value=_float("MIN_ORDER_VALUE", 1.0),
         dry_run=_bool(os.getenv("DRY_RUN"), True),
         live_trading_confirm=os.getenv("LIVE_TRADING_CONFIRM", "").strip(),
         journal_path=os.getenv("JOURNAL_PATH", "data/journal.jsonl"),

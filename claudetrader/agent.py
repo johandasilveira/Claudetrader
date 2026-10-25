@@ -22,6 +22,10 @@ Principes :
 - Respecte les limites : montant maximal par ordre, valeur maximale par position, perte maximale par jour.
   Une décision qui les viole sera rejetée par les garde-fous, inutile de la proposer.
 - Pas de vente à découvert sauf si explicitement autorisé.
+- Si allow_fractional est vrai, les quantités peuvent être fractionnaires (ex : 0.0288 action) : calcule-les
+  à partir du montant que tu veux engager divisé par le prix, arrondi à 4 décimales. Sinon, entiers uniquement.
+- Chaque ordre coûte environ 1 USD de commission minimale : sur un petit compte, ne trade que si le gain
+  espéré dépasse nettement ce coût, et n'enchaîne pas les petits ordres.
 - Préfère les ordres limite proches du dernier cours. Un ordre marché n'est justifié qu'en cas d'urgence.
 - Tiens compte des ordres déjà ouverts pour ne pas doubler une exposition.
 - Les données de prix peuvent être différées de 15 minutes.
@@ -61,6 +65,8 @@ class ClaudeAgent:
                 "orders_already_sent_today": orders_today,
                 "max_limit_deviation_pct": settings.max_limit_deviation_pct,
                 "allow_short": settings.allow_short,
+                "allow_fractional": settings.allow_fractional,
+                "min_order_value": settings.min_order_value,
             },
             "universe": settings.symbols,
             "positions": [p.model_dump() for p in snap.positions],

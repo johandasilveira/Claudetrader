@@ -62,7 +62,10 @@ class Decision(BaseModel):
 
     symbol: str = Field(description="Symbole de l'actif, exactement comme fourni dans l'univers.")
     action: Action
-    quantity: int = Field(description="Nombre d'actions. 0 si action = hold.")
+    quantity: float = Field(
+        description="Nombre d'actions. 0 si action = hold. Fractions (ex : 0.0288) autorisées seulement si "
+        "allow_fractional est vrai dans les limites, sinon entier."
+    )
     order_type: OrderType = Field(description="market ou limit. Pour hold, mettre market.")
     limit_price: float | None = Field(description="Prix limite si order_type = limit, sinon null.")
     confidence: float = Field(description="Confiance entre 0 et 1.")

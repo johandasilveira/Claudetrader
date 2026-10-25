@@ -147,6 +147,8 @@ Tous dans `.env`, tous vérifiés dans `claudetrader/risk.py` avant chaque ordre
 | `MAX_ORDERS_PER_DAY` | Plafond d'ordres envoyés par jour, compté depuis le journal, donc résistant aux redémarrages. |
 | `MAX_LIMIT_DEVIATION_PCT` | Un prix limite trop éloigné du dernier cours est rejeté. |
 | `ALLOW_SHORT` | Vente à découvert interdite par défaut. |
+| `ALLOW_FRACTIONAL` | Autorise les fractions d'actions (permission IBKR "Fractional Shares" requise). Indispensable sous quelques centaines d'euros. |
+| `MIN_ORDER_VALUE` | Montant minimal d'un ordre, pour ne pas multiplier les ordres mangés par la commission minimale d'environ 1 $. |
 | `DRY_RUN` | En `true`, connexion IBKR en lecture seule : la passerelle elle-même refuserait un ordre. |
 
 En plus de ces règles, le bot ne trade jamais si Claude refuse de répondre, si la réponse est tronquée ou invalide, ou si aucun prix n'est disponible pour le symbole.

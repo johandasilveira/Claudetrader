@@ -124,3 +124,17 @@ def test_market_order_uses_last_price_for_notional():
     assert v.approved
     v = RiskManager(make_settings()).check(decision(order_type="market", limit_price=None, quantity=11), make_snapshot(), 0)
     assert not v.approved
+
+
+def test_fractional_quantity_requires_flag():
+    d = decision(quantity=0.05, limit_price=100.0)  # 5 USD
+    v = RiskManager(make_settings()).check(d, make_snapshot(), 0)
+    assert not v.approved and "fractionnaire" in v.reason
+    v = RiskManager(make_settings(allow_fractional=True)).check(d, make_snapshot(), 0)
+    assert v.approved, v.reason
+
+
+def test_min_order_value():
+    d = decision(quantity=0.005, limit_price=100.0)  # 0.50 USD
+    v = RiskManager(make_settings(allow_fractional=True, min_order_value=1.0)).check(d, make_snapshot(), 0)
+    assert not v.approved and "MIN_ORDER_VALUE" in v.reason

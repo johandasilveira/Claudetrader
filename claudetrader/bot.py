@@ -54,7 +54,7 @@ class TradingBot:
                 log.info("%s : hold (%s)", decision.symbol, decision.rationale)
                 continue
             log.info(
-                "%s : %s %s x%d %s%s -> %s (%s)",
+                "%s : %s %s x%g %s%s -> %s (%s)",
                 decision.symbol, tag, decision.action, decision.quantity, decision.order_type,
                 f" @ {decision.limit_price}" if decision.limit_price else "", verdict.reason, decision.rationale,
             )

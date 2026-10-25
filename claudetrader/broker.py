@@ -162,15 +162,17 @@ class IBKRBroker:
 
     # ---- exécution ----
 
-    def place_order(self, symbol: str, action: str, quantity: int, order_type: str, limit_price: float | None) -> Trade:
+    def place_order(self, symbol: str, action: str, quantity: float, order_type: str, limit_price: float | None) -> Trade:
         contract = self._contracts[symbol]
         ib_action = "BUY" if action == "buy" else "SELL"
+        # Quantité entière si possible, sinon fraction arrondie à 4 décimales (précision acceptée par IBKR).
+        qty: float = int(quantity) if float(quantity).is_integer() else round(float(quantity), 4)
         if order_type == "limit":
             if limit_price is None:
                 raise ValueError("Un ordre limite exige un prix limite.")
-            order = LimitOrder(ib_action, quantity, round(limit_price, 2))
+            order = LimitOrder(ib_action, qty, round(limit_price, 2))
         else:
-            order = MarketOrder(ib_action, quantity)
+            order = MarketOrder(ib_action, qty)
         order.tif = "DAY"
         order.account = self.account
         trade = self.ib.placeOrder(contract, order)
