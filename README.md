@@ -152,3 +152,23 @@ Les tests couvrent les garde-fous, la configuration (verrou du mode réel), le j
 - Les cours sont différés de 15 minutes sans abonnement aux données temps réel.
 - IB Gateway demande une reconnexion quotidienne. Prévois un redémarrage automatique (IBC ou un conteneur type `ib-gateway-docker`) pour un fonctionnement sans surveillance.
 - Ce projet est un point de départ, pas un conseil en investissement. Tu es seul responsable des ordres envoyés sur ton compte.
+
+## Skills Claude d'analyse (day-trader-fr)
+
+Le dossier `.claude/skills/` contient les 11 skills du projet open source [dan-ai-lab/day-trader-fr](https://github.com/dan-ai-lab/day-trader-fr) (licence MIT, adaptation française de [day-trader-skill](https://github.com/Jakeschincariol/day-trader-skill)). Ils s'utilisent dans Claude Code ouvert sur ce dépôt, en tapant par exemple `/trader-scanner` ou `/trader-timemachine TSLA`.
+
+| Skill | Rôle |
+|---|---|
+| `/trader-scanner` | Repère les graphiques qui matchent une règle (cassure d'ouverture, drapeau haussier, survente, rebond). |
+| `/trader-news` | Actualités, dépôts SEC et mouvements des titres suivis. |
+| `/trader-entry` | Attend la clôture d'une bougie pour confirmer un déclencheur d'entrée. |
+| `/trader-exit` | Fixe stop, objectif et heure de sortie avant l'achat. |
+| `/trader-timemachine` | Simule 10 000 fins de séance et compare aux séances historiques. |
+| `/trader-budget` | Calcule la taille de position à partir du budget et du risque maximal. |
+| `/trader-risk` | Vérifie chaque proposition et la bloque si elle viole tes règles. |
+| `/trader-broker` | Prépare un ticket d'ordre, en simulation par défaut. |
+| `/trader-alerts` | Alertes sur un prix, un stop, un objectif ou l'heure de clôture. |
+| `/trader-analyst` | Lit les résultats publiés à la SEC et explique ce qui a changé. |
+| `/trader-pelosi` | Lit les déclarations de transactions des membres du Congrès américain. |
+
+Ces skills sont des outils d'**analyse manuelle et de simulation** : données Yahoo gratuites et différées, marchés américains uniquement, aucun ordre réel envoyé par les scripts. Ils complètent le bot autonome mais n'en font pas partie. Les scripts n'ont besoin que de Python 3.8+, sans bibliothèque externe.
