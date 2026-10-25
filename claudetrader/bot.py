@@ -90,17 +90,21 @@ class TradingBot:
         log.info("Boucle démarrée, un cycle toutes les %d minutes. Ctrl+C pour arrêter.", self.s.interval_minutes)
         while True:
             started = time.monotonic()
+            wait = interval
             try:
                 if not self.broker.ib.isConnected():
                     log.warning("Déconnecté de la passerelle (redémarrage IB Gateway ?). Reconnexion...")
                     self.journal.write("reconnect", {})
-                    self.broker.connect(retries=20, retry_delay=30)
+                    self.broker.connect(retries=1_000_000, retry_delay=30)
                 self.run_cycle()
             except KeyboardInterrupt:
                 raise
             except Exception as exc:
                 log.exception("Cycle en erreur : %s", exc)
                 self.journal.write("cycle_error", {"error": str(exc)})
+                wait = 60  # après une erreur (souvent une coupure passerelle), on réessaie vite
+                if self.broker.ib.isConnected():
+                    self.broker.disconnect()  # repartir d'une connexion propre au prochain tour
             elapsed = time.monotonic() - started
             # ib_async a besoin que sa boucle d'événements tourne pendant l'attente.
-            self.broker.ib.sleep(max(5.0, interval - elapsed))
+            self.broker.ib.sleep(max(5.0, wait - elapsed))
