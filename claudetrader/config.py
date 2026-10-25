@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 from dotenv import load_dotenv
 
-LIVE_PORTS = {4001, 7496}
+LIVE_PORTS = {4001, 7496, 4003}  # 4003 = port live de l'image Docker ib-gateway
 LIVE_CONFIRM_PHRASE = "I_UNDERSTAND_THIS_TRADES_REAL_MONEY"
 
 
@@ -34,6 +34,7 @@ class Settings:
     ib_port: int = 4002
     ib_client_id: int = 7
     ib_account: str = ""
+    trading_mode: str = "paper"  # paper ou live
 
     # Claude
     anthropic_api_key: str = ""
@@ -66,6 +67,10 @@ class Settings:
     def is_live_port(self) -> bool:
         return self.ib_port in LIVE_PORTS
 
+    @property
+    def is_live(self) -> bool:
+        return self.trading_mode == "live" or self.is_live_port
+
     def validate(self) -> None:
         """Lève une erreur claire si la configuration est dangereuse ou incomplète."""
         if not self.symbols:
@@ -76,9 +81,11 @@ class Settings:
             raise ValueError("MAX_ORDER_VALUE ne peut pas dépasser MAX_POSITION_VALUE.")
         if self.max_daily_loss <= 0:
             raise ValueError("MAX_DAILY_LOSS doit être positif.")
-        if self.is_live_port and not self.dry_run and self.live_trading_confirm != LIVE_CONFIRM_PHRASE:
+        if self.trading_mode not in ("paper", "live"):
+            raise ValueError("TRADING_MODE doit valoir paper ou live.")
+        if self.is_live and not self.dry_run and self.live_trading_confirm != LIVE_CONFIRM_PHRASE:
             raise ValueError(
-                f"Le port {self.ib_port} est un port de trading REEL. Pour l'autoriser, "
+                f"Trading REEL demandé (TRADING_MODE={self.trading_mode}, port {self.ib_port}). Pour l'autoriser, "
                 f"mets LIVE_TRADING_CONFIRM={LIVE_CONFIRM_PHRASE} dans le .env."
             )
         if not self.dry_run and not self.anthropic_api_key:
@@ -94,6 +101,7 @@ def load_settings(env_file: str | None = ".env") -> Settings:
         ib_port=_int("IB_PORT", 4002),
         ib_client_id=_int("IB_CLIENT_ID", 7),
         ib_account=os.getenv("IB_ACCOUNT", "").strip(),
+        trading_mode=os.getenv("TRADING_MODE", "paper").strip().lower(),
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", "").strip(),
         claude_model=os.getenv("CLAUDE_MODEL", "claude-opus-5-5").strip(),
         claude_effort=os.getenv("CLAUDE_EFFORT", "high").strip(),

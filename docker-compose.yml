@@ -1,0 +1,55 @@
+# Déploiement complet sur un serveur : IB Gateway (auto-login via IBC) + le bot.
+# Toutes les valeurs viennent du fichier .env à côté de ce fichier.
+name: claudetrader
+
+services:
+  ib-gateway:
+    image: ghcr.io/gnzsnz/ib-gateway:stable
+    restart: always
+    environment:
+      TWS_USERID: ${TWS_USERID}
+      TWS_PASSWORD: ${TWS_PASSWORD}
+      TRADING_MODE: ${TRADING_MODE:-live}
+      READ_ONLY_API: ${READ_ONLY_API:-no}
+      TWS_ACCEPT_INCOMING: accept
+      TWOFA_TIMEOUT_ACTION: restart
+      RELOGIN_AFTER_TWOFA_TIMEOUT: "yes"
+      TWOFA_EXIT_INTERVAL: 180
+      AUTO_RESTART_TIME: ${AUTO_RESTART_TIME:-11:59 PM}
+      BYPASS_WARNING: "yes"
+      EXISTING_SESSION_DETECTED_ACTION: primary
+      TIME_ZONE: ${TIME_ZONE:-Europe/Paris}
+      TZ: ${TIME_ZONE:-Europe/Paris}
+      VNC_SERVER_PASSWORD: ${VNC_SERVER_PASSWORD:-}
+      JAVA_HEAP_SIZE: 1024
+    volumes:
+      - gateway_settings:/home/ibgateway/tws_settings
+    ports:
+      # Exposés uniquement sur la boucle locale du serveur : jamais sur Internet.
+      - "127.0.0.1:4001:4003"   # API live
+      - "127.0.0.1:4002:4004"   # API paper
+      - "127.0.0.1:5900:5900"   # VNC (voir la fenêtre de la passerelle via un tunnel SSH)
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/4003 || </dev/tcp/127.0.0.1/4004'"]
+      interval: 30s
+      timeout: 5s
+      retries: 20
+      start_period: 120s
+
+  bot:
+    build: .
+    restart: always
+    depends_on:
+      ib-gateway:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      # Dans le réseau Docker la passerelle s'appelle ib-gateway ; 4003 = live, 4004 = paper.
+      IB_HOST: ib-gateway
+      IB_PORT: ${IB_PORT_DOCKER:-4003}
+      JOURNAL_PATH: /app/data/journal.jsonl
+    volumes:
+      - ./data:/app/data
+
+volumes:
+  gateway_settings:

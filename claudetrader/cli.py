@@ -25,7 +25,7 @@ def _setup_logging(verbose: bool) -> None:
 
 def _banner(settings) -> None:
     mode = "DRY_RUN (aucun ordre envoyé)" if settings.dry_run else "ORDRES RÉELS ACTIVÉS"
-    compte = "RÉEL" if settings.is_live_port else "PAPIER"
+    compte = "RÉEL" if settings.is_live else "PAPIER"
     print(f"Claudetrader | port {settings.ib_port} ({compte}) | {mode} | modèle {settings.claude_model}")
     print(f"Univers : {', '.join(settings.symbols)} | limites : ordre {settings.max_order_value:g}, "
           f"position {settings.max_position_value:g}, perte/jour {settings.max_daily_loss:g}")

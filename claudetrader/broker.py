@@ -23,11 +23,24 @@ class IBKRBroker:
 
     # ---- connexion ----
 
-    def connect(self) -> None:
+    def connect(self, retries: int = 1, retry_delay: float = 30.0) -> None:
+        """Se connecte à la passerelle. Avec retries > 1, réessaie (utile au démarrage d'un conteneur)."""
         s = self.settings
-        log.info("Connexion à IBKR %s:%s (clientId=%s, readonly=%s)", s.ib_host, s.ib_port, s.ib_client_id, s.dry_run)
-        # En dry-run on se connecte en lecture seule : la passerelle elle-même refusera tout ordre.
-        self.ib.connect(s.ib_host, s.ib_port, clientId=s.ib_client_id, readonly=s.dry_run, account=s.ib_account, timeout=10)
+        last_error: Exception | None = None
+        for attempt in range(1, retries + 1):
+            try:
+                log.info("Connexion à IBKR %s:%s (clientId=%s, readonly=%s) tentative %d/%d",
+                         s.ib_host, s.ib_port, s.ib_client_id, s.dry_run, attempt, retries)
+                # En dry-run on se connecte en lecture seule : la passerelle elle-même refusera tout ordre.
+                self.ib.connect(s.ib_host, s.ib_port, clientId=s.ib_client_id, readonly=s.dry_run,
+                                account=s.ib_account, timeout=15)
+                break
+            except (OSError, TimeoutError, ConnectionError) as exc:
+                last_error = exc
+                if attempt == retries:
+                    raise
+                log.warning("Passerelle injoignable (%s). Nouvel essai dans %.0f s.", exc, retry_delay)
+                self.ib.sleep(retry_delay)
         self.ib.reqMarketDataType(DELAYED_MARKET_DATA)
         for symbol in s.symbols:
             self._contracts[symbol] = Stock(symbol, s.exchange, s.currency)

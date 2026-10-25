@@ -91,6 +91,10 @@ class TradingBot:
         while True:
             started = time.monotonic()
             try:
+                if not self.broker.ib.isConnected():
+                    log.warning("Déconnecté de la passerelle (redémarrage IB Gateway ?). Reconnexion...")
+                    self.journal.write("reconnect", {})
+                    self.broker.connect(retries=20, retry_delay=30)
                 self.run_cycle()
             except KeyboardInterrupt:
                 raise

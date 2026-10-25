@@ -66,12 +66,55 @@ Quand les plans journalisés te paraissent sensés, mets `DRY_RUN=false` dans `.
 Ce n'est pas une simple option. Il faut **trois** changements délibérés dans `.env` :
 
 ```
-IB_PORT=4001
+TRADING_MODE=live          # et IB_PORT=4001 si IB Gateway tourne en local
 DRY_RUN=false
 LIVE_TRADING_CONFIRM=I_UNDERSTAND_THIS_TRADES_REAL_MONEY
 ```
 
-Sans la phrase exacte, le bot refuse de démarrer sur un port réel. Il faut aussi relancer IB Gateway en mode *Live*.
+Sans la phrase exacte, le bot refuse de démarrer en mode réel. Conseil : fais d'abord tourner quelques cycles en `DRY_RUN=true` sur le compte réel pour lire ce que Claude propose avant de laisser partir les ordres.
+
+## Faire tourner le bot dans le cloud (24h/24)
+
+Le bot a besoin d'IB Gateway allumé en permanence. La solution : un petit serveur VPS Linux (Hetzner, OVH, Scaleway, DigitalOcean, environ 5 à 10 euros par mois, 2 Go de RAM minimum) avec Docker. Le fichier `docker-compose.yml` lance deux conteneurs : IB Gateway avec connexion automatique (image `ghcr.io/gnzsnz/ib-gateway`, basée sur IBC) et le bot.
+
+### Mise en place
+
+```bash
+# Sur le serveur, une seule fois
+curl -fsSL https://get.docker.com | sh
+git clone -b claude/ibkr-bot https://github.com/johandasilveira/Claudetrader
+cd Claudetrader
+cp .env.example .env
+nano .env        # TWS_USERID, TWS_PASSWORD, ANTHROPIC_API_KEY, garde-fous
+
+# Lancer
+docker compose up -d --build
+docker compose logs -f
+```
+
+Au premier démarrage, la passerelle se connecte à IBKR et **déclenche une notification IBKR Mobile sur ton téléphone**. Approuve-la dans les trois minutes. Le bot attend que la passerelle soit prête, puis démarre.
+
+### Ce qu'il faut savoir sur l'authentification IBKR
+
+- IBKR impose la double authentification. Grâce à `AUTO_RESTART_TIME`, le redémarrage quotidien de la passerelle ne redemande pas de validation.
+- IBKR force malgré tout une **ré-authentification complète une fois par semaine**, le dimanche. Ce jour-là tu recevras une notification IBKR Mobile à approuver. Si tu ne réponds pas, la passerelle réessaie (`TWOFA_TIMEOUT_ACTION=restart`) et le bot reste en attente, sans trader, jusqu'à ce que tu valides.
+- Si la passerelle redémarre, le bot le détecte et se reconnecte tout seul.
+
+### Commandes utiles
+
+```bash
+docker compose logs -f bot                 # suivre le bot
+docker compose exec bot python -m claudetrader status   # lire le compte
+tail -f data/journal.jsonl                 # journal brut
+docker compose restart ib-gateway          # forcer une reconnexion
+docker compose down                        # tout arrêter
+```
+
+Pour voir la fenêtre de la passerelle (utile en cas de message bloquant), mets un mot de passe dans `VNC_SERVER_PASSWORD`, ouvre un tunnel `ssh -L 5900:127.0.0.1:5900 user@serveur` et connecte un client VNC sur `localhost:5900`.
+
+### Sécurité du serveur
+
+Les ports de la passerelle ne sont exposés que sur la boucle locale du serveur, jamais sur Internet. Garde le fichier `.env` hors de git (il l'est déjà via `.gitignore`), active un pare-feu qui n'ouvre que SSH, et utilise une clé SSH plutôt qu'un mot de passe.
 
 ## Garde-fous
 
