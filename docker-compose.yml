@@ -21,7 +21,7 @@ services:
       TIME_ZONE: ${TIME_ZONE:-Europe/Paris}
       TZ: ${TIME_ZONE:-Europe/Paris}
       VNC_SERVER_PASSWORD: ${VNC_SERVER_PASSWORD:-}
-      JAVA_HEAP_SIZE: 1024
+      JAVA_HEAP_SIZE: ${JAVA_HEAP_SIZE:-1024}
     volumes:
       - gateway_settings:/home/ibgateway/tws_settings
     ports:

@@ -77,7 +77,25 @@ Sans la phrase exacte, le bot refuse de démarrer en mode réel. Conseil : fais 
 
 Le bot a besoin d'IB Gateway allumé en permanence. La solution : un petit serveur VPS Linux (Hetzner, OVH, Scaleway, DigitalOcean, environ 5 à 10 euros par mois, 2 Go de RAM minimum) avec Docker. Le fichier `docker-compose.yml` lance deux conteneurs : IB Gateway avec connexion automatique (image `ghcr.io/gnzsnz/ib-gateway`, basée sur IBC) et le bot.
 
-### Mise en place
+### Option gratuite : Google Cloud e2-micro (Always Free)
+
+Google Cloud offre à vie une petite machine x86 (1 Go de RAM, 30 Go de disque) dans une région américaine. C'est juste pour IB Gateway, mais ça tient avec un fichier d'échange de 2 Go et une mémoire Java réduite à 512 Mo. Il faut un compte Google Cloud avec une carte bancaire enregistrée (exigée par Google, mais rien n'est facturé tant que tu restes dans les limites : une seule e2-micro, disque `pd-standard` de 30 Go, région us-west1 / us-central1 / us-east1).
+
+Tout se fait depuis le navigateur, même sur téléphone, via Google Cloud Shell :
+
+1. Crée un projet sur https://console.cloud.google.com et active la facturation.
+2. Ouvre https://shell.cloud.google.com puis :
+   ```bash
+   git clone -b claude/ibkr-bot https://github.com/johandasilveira/Claudetrader
+   cd Claudetrader
+   gcloud config set project TON_PROJET
+   bash deploy/gcp-free-tier.sh
+   ```
+3. Attends deux minutes, puis `bash deploy/gcp-free-tier.sh ssh` et suis les instructions affichées (copie de `.env`, `JAVA_HEAP_SIZE=512`, `docker compose up -d --build`).
+
+Le script `deploy/gcp-free-tier.sh` crée la machine, le fichier d'échange, installe Docker et clone le projet. Le démarrage de la passerelle prend 2 à 4 minutes sur cette machine. Si la mémoire ne suffit pas malgré tout, la seule issue est une machine plus grande (e2-small, environ 12 € par mois) ou un VPS classique.
+
+### Mise en place sur un VPS classique
 
 ```bash
 # Sur le serveur, une seule fois
