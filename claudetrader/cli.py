@@ -31,7 +31,15 @@ def _banner(settings) -> None:
           f"position {settings.max_position_value:g}, perte/jour {settings.max_daily_loss:g}")
 
 
+def _side_settings(settings):
+    """Copie des réglages avec un identifiant client distinct : `status` et `once` peuvent
+    tourner pendant que le bot principal (clientId de base) est connecté."""
+    import dataclasses
+    return dataclasses.replace(settings, ib_client_id=settings.ib_client_id + 100)
+
+
 def cmd_status(settings) -> int:
+    settings = _side_settings(settings)
     broker = IBKRBroker(settings)
     broker.connect()
     try:
@@ -62,7 +70,7 @@ def _build_bot(settings) -> tuple[TradingBot, IBKRBroker]:
 
 
 def cmd_once(settings) -> int:
-    bot, broker = _build_bot(settings)
+    bot, broker = _build_bot(_side_settings(settings))
     broker.connect()
     try:
         bot.run_cycle()
