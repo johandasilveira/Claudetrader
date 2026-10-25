@@ -73,7 +73,8 @@ def cmd_once(settings) -> int:
 
 def cmd_run(settings) -> int:
     bot, broker = _build_bot(settings)
-    broker.connect()
+    # En mode continu on attend la passerelle aussi longtemps qu'il faut (démarrage, 2FA, redémarrage).
+    broker.connect(retries=1_000_000, retry_delay=30)
     try:
         bot.run_forever()
     except KeyboardInterrupt:
