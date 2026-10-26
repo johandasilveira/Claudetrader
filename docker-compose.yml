@@ -1,27 +1,24 @@
 # Déploiement complet sur un serveur : IB Gateway (auto-login via IBC) + le bot.
-# Toutes les valeurs viennent du fichier .env à côté de ce fichier.
+# Réglages : settings.env (versionné, sans secret) puis .env (local : identifiants), qui a priorité.
 name: claudetrader
 
 services:
   ib-gateway:
     image: ghcr.io/gnzsnz/ib-gateway:stable
     restart: always
+    env_file:
+      - settings.env
+      - .env
     environment:
-      TWS_USERID: ${TWS_USERID}
-      TWS_PASSWORD: ${TWS_PASSWORD}
-      TRADING_MODE: ${TRADING_MODE:-live}
-      READ_ONLY_API: ${READ_ONLY_API:-no}
+      # TWS_USERID / TWS_PASSWORD / JAVA_HEAP_SIZE / VNC_SERVER_PASSWORD viennent de .env ;
+      # TRADING_MODE / AUTO_RESTART_TIME / TIME_ZONE / TZ de settings.env.
+      READ_ONLY_API: no
       TWS_ACCEPT_INCOMING: accept
       TWOFA_TIMEOUT_ACTION: restart
       RELOGIN_AFTER_TWOFA_TIMEOUT: "yes"
       TWOFA_EXIT_INTERVAL: 180
-      AUTO_RESTART_TIME: ${AUTO_RESTART_TIME:-11:59 PM}
       BYPASS_WARNING: "yes"
       EXISTING_SESSION_DETECTED_ACTION: primary
-      TIME_ZONE: ${TIME_ZONE:-Europe/Paris}
-      TZ: ${TIME_ZONE:-Europe/Paris}
-      VNC_SERVER_PASSWORD: ${VNC_SERVER_PASSWORD:-}
-      JAVA_HEAP_SIZE: ${JAVA_HEAP_SIZE:-1024}
       # Scripts exécutés avant la génération de la config IBC (voir deploy/gateway-init/).
       X_SCRIPTS: init-scripts
     volumes:
@@ -45,7 +42,9 @@ services:
     depends_on:
       ib-gateway:
         condition: service_healthy
-    env_file: .env
+    env_file:
+      - settings.env
+      - .env
     environment:
       # Dans le réseau Docker la passerelle s'appelle ib-gateway ; 4003 = live, 4004 = paper.
       IB_HOST: ib-gateway

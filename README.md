@@ -134,6 +134,21 @@ Pour voir la fenêtre de la passerelle (utile en cas de message bloquant), mets 
 
 Les ports de la passerelle ne sont exposés que sur la boucle locale du serveur, jamais sur Internet. Garde le fichier `.env` hors de git (il l'est déjà via `.gitignore`), active un pare-feu qui n'ouvre que SSH, et utilise une clé SSH plutôt qu'un mot de passe.
 
+## Deux fichiers de configuration
+
+| Fichier | Contenu | Dans git ? |
+|---|---|---|
+| `settings.env` | Univers, cadence, garde-fous, `DRY_RUN`, modèle Claude, mode de la passerelle. Aucun secret. | Oui |
+| `.env` | Identifiants IBKR, clé API Claude, `LIVE_TRADING_CONFIRM`, réglages propres à la machine. | Non |
+
+Le `.env` a priorité sur `settings.env`. Pour modifier un réglage, édite `settings.env` (depuis Claude Code ou à la main), pousse, puis sur la machine :
+
+```bash
+cd /opt/claudetrader && git pull && sudo docker compose up -d bot
+```
+
+Si une variable existe dans les deux fichiers, c'est la valeur du `.env` qui gagne : garde-y uniquement les secrets.
+
 ## Garde-fous
 
 Tous dans `.env`, tous vérifiés dans `claudetrader/risk.py` avant chaque ordre :

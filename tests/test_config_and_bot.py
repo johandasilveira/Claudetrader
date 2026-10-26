@@ -19,9 +19,9 @@ def test_live_port_requires_confirmation(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
     monkeypatch.delenv("LIVE_TRADING_CONFIRM", raising=False)
     with pytest.raises(ValueError, match="REEL"):
-        load_settings(env_file=None)
+        load_settings(env_file=None, shared_file=None)
     monkeypatch.setenv("LIVE_TRADING_CONFIRM", LIVE_CONFIRM_PHRASE)
-    assert load_settings(env_file=None).is_live_port
+    assert load_settings(env_file=None, shared_file=None).is_live_port
 
 
 def test_trading_mode_live_requires_confirmation(monkeypatch):
@@ -31,21 +31,21 @@ def test_trading_mode_live_requires_confirmation(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "k")
     monkeypatch.delenv("LIVE_TRADING_CONFIRM", raising=False)
     with pytest.raises(ValueError, match="REEL"):
-        load_settings(env_file=None)
+        load_settings(env_file=None, shared_file=None)
     monkeypatch.setenv("LIVE_TRADING_CONFIRM", LIVE_CONFIRM_PHRASE)
-    assert load_settings(env_file=None).is_live
+    assert load_settings(env_file=None, shared_file=None).is_live
 
 
 def test_live_port_in_dry_run_is_allowed(monkeypatch):
     monkeypatch.setenv("IB_PORT", "4001")
     monkeypatch.setenv("DRY_RUN", "true")
-    assert load_settings(env_file=None).dry_run
+    assert load_settings(env_file=None, shared_file=None).dry_run
 
 
 def test_defaults_are_paper_and_dry_run(monkeypatch):
     for k in ("IB_PORT", "DRY_RUN", "SYMBOLS", "TRADING_MODE", "LIVE_TRADING_CONFIRM"):
         monkeypatch.delenv(k, raising=False)
-    s = load_settings(env_file=None)
+    s = load_settings(env_file=None, shared_file=None)
     assert s.ib_port == 4002 and s.dry_run and s.symbols == ["AAPL", "MSFT", "SPY"]
 
 

@@ -96,13 +96,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="claudetrader", description="Bot de trading Claude + Interactive Brokers")
     parser.add_argument("command", choices=["status", "once", "run"],
                         help="status : lit le compte sans appeler Claude | once : un seul cycle | run : boucle continue")
-    parser.add_argument("--env", default=".env", help="fichier .env à charger (défaut : .env)")
+    parser.add_argument("--env", default=".env", help="fichier des secrets à charger (défaut : .env)")
+    parser.add_argument("--settings", default="settings.env", help="fichier des réglages partagés (défaut : settings.env)")
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
 
     _setup_logging(args.verbose)
     try:
-        settings = load_settings(args.env)
+        settings = load_settings(args.env, args.settings)
     except ValueError as exc:
         print(f"Configuration invalide : {exc}", file=sys.stderr)
         return 2

@@ -94,9 +94,12 @@ class Settings:
             raise ValueError("ANTHROPIC_API_KEY manquante.")
 
 
-def load_settings(env_file: str | None = ".env") -> Settings:
+def load_settings(env_file: str | None = ".env", shared_file: str | None = "settings.env") -> Settings:
+    """Ordre de priorité : variables d'environnement > .env (local, secrets) > settings.env (versionné)."""
     if env_file:
         load_dotenv(env_file, override=False)
+    if shared_file:
+        load_dotenv(shared_file, override=False)
     symbols = [s.strip().upper() for s in os.getenv("SYMBOLS", "AAPL,MSFT,SPY").split(",") if s.strip()]
     settings = Settings(
         ib_host=os.getenv("IB_HOST", "127.0.0.1"),
