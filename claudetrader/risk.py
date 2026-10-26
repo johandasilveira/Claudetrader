@@ -77,6 +77,13 @@ class RiskManager:
             kill = self.kill_switch(snap)
             if kill:
                 return RiskVerdict(d, False, kill)
+            held = {p.symbol for p in snap.positions if p.quantity != 0}
+            if d.symbol not in held and len(held) >= self.s.max_open_positions:
+                return RiskVerdict(
+                    d, False,
+                    f"Déjà {len(held)} positions ouvertes (max {self.s.max_open_positions}) : "
+                    f"pas de nouvelle ligne sur {d.symbol}.",
+                )
             if notional > snap.available_funds:
                 return RiskVerdict(d, False, f"Liquidités insuffisantes ({snap.available_funds:.2f} disponibles).")
             projected = (current_qty + pending + d.quantity) * ref_price

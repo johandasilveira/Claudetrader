@@ -28,6 +28,7 @@ def make_snapshot(**overrides) -> AccountSnapshot:
         market=[
             SymbolData(symbol="AAPL", last_price=100.0, bars=[]),
             SymbolData(symbol="MSFT", last_price=200.0, bars=[]),
+            SymbolData(symbol="SPY", last_price=200.0, bars=[]),
         ],
         currency="USD",
         timestamp="2026-10-22T14:00:00+00:00",
@@ -138,3 +139,16 @@ def test_min_order_value():
     d = decision(quantity=0.005, limit_price=100.0)  # 0.50 USD
     v = RiskManager(make_settings(allow_fractional=True, min_order_value=1.0)).check(d, make_snapshot(), 0)
     assert not v.approved and "MIN_ORDER_VALUE" in v.reason
+
+
+def test_max_open_positions_blocks_a_third_line():
+    snap = make_snapshot(positions=[
+        PositionInfo(symbol="AAPL", quantity=1, avg_cost=100, market_value=100, unrealized_pnl=0),
+        PositionInfo(symbol="MSFT", quantity=1, avg_cost=200, market_value=200, unrealized_pnl=0),
+    ])
+    s = make_settings(symbols=["AAPL", "MSFT", "SPY"], max_open_positions=2, max_position_value=3000)
+    # Renforcer une ligne déjà ouverte reste possible
+    assert RiskManager(s).check(decision(symbol="AAPL", quantity=5), snap, 0).approved
+    # Mais pas d'ouvrir une troisième ligne
+    v = RiskManager(s).check(decision(symbol="SPY", quantity=1, limit_price=200.0), snap, 0)
+    assert not v.approved and "positions ouvertes" in v.reason

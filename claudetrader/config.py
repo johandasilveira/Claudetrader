@@ -58,6 +58,11 @@ class Settings:
     allow_short: bool = False
     allow_fractional: bool = False
     min_order_value: float = 1.0
+    max_open_positions: int = 2
+
+    # Cadence
+    trade_hours_only: bool = True
+    skip_first_minutes: int = 30
 
     # Sécurité
     dry_run: bool = True
@@ -124,6 +129,9 @@ def load_settings(env_file: str | None = ".env", shared_file: str | None = "sett
         allow_short=_bool(os.getenv("ALLOW_SHORT"), False),
         allow_fractional=_bool(os.getenv("ALLOW_FRACTIONAL"), False),
         min_order_value=_float("MIN_ORDER_VALUE", 1.0),
+        max_open_positions=_int("MAX_OPEN_POSITIONS", 2),
+        trade_hours_only=_bool(os.getenv("TRADE_HOURS_ONLY"), True),
+        skip_first_minutes=_int("SKIP_FIRST_MINUTES", 30),
         dry_run=_bool(os.getenv("DRY_RUN"), True),
         live_trading_confirm=os.getenv("LIVE_TRADING_CONFIRM", "").strip(),
         journal_path=os.getenv("JOURNAL_PATH", "data/journal.jsonl"),

@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import time
 
+from . import market
 from .agent import ClaudeAgent
 from .broker import IBKRBroker
 from .config import Settings
@@ -85,13 +86,42 @@ class TradingBot:
                 },
             )
 
+    def _sleep_until_market(self) -> bool:
+        """Hors séance, attend la prochaine ouverture sans appeler Claude.
+
+        Retourne True si le cycle doit être sauté. Un appel API hors marché ne
+        peut rien décider d'utile et coûte le prix d'un cycle complet.
+        """
+        if not self.s.trade_hours_only or market.is_open():
+            return False
+        secs = market.seconds_until_open()
+        opening = market.next_open()
+        log.info(
+            "Marché fermé. Prochaine ouverture : %s (dans %.1f h). Aucun appel à Claude d'ici là.",
+            opening.strftime("%d/%m %H:%M %Z"), secs / 3600,
+        )
+        # On se réveille au plus tard toutes les heures pour garder la connexion vivante.
+        self.broker.ib.sleep(min(secs + 30, 3600))
+        return True
+
     def run_forever(self) -> None:
         interval = max(1, self.s.interval_minutes) * 60
-        log.info("Boucle démarrée, un cycle toutes les %d minutes. Ctrl+C pour arrêter.", self.s.interval_minutes)
+        log.info(
+            "Boucle démarrée, un cycle toutes les %d minutes%s. Ctrl+C pour arrêter.",
+            self.s.interval_minutes, ", heures de marché uniquement" if self.s.trade_hours_only else "",
+        )
         while True:
             started = time.monotonic()
             wait = interval
             try:
+                if self._sleep_until_market():
+                    continue
+                if self.s.skip_first_minutes and (since := market.minutes_since_open()) is not None \
+                        and since < self.s.skip_first_minutes:
+                    log.info("Ouverture il y a %.0f min : on laisse passer les %d premières minutes.",
+                             since, self.s.skip_first_minutes)
+                    self.broker.ib.sleep(60 * (self.s.skip_first_minutes - since) + 10)
+                    continue
                 if not self.broker.ib.isConnected():
                     log.warning("Déconnecté de la passerelle (redémarrage IB Gateway ?). Reconnexion...")
                     self.journal.write("reconnect", {})

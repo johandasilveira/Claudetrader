@@ -149,6 +149,20 @@ cd /opt/claudetrader && git pull && sudo docker compose up -d bot
 
 Si une variable existe dans les deux fichiers, c'est la valeur du `.env` qui gagne : garde-y uniquement les secrets.
 
+## Stratégie
+
+Le bot fait du **swing sur quelques jours**, pas du trading intrajournalier. La raison est
+arithmétique : un aller-retour coûte environ 2 USD de commission, soit 1,3 à 2 % d'un ordre de
+100 à 150 USD. Seul un mouvement de 4 à 6 % sur 2 à 10 séances justifie ce coût.
+
+Claude n'achète que sur deux configurations : un repli de 2 à 4 % dans une tendance haussière avec
+signe de reprise, ou une sortie de consolidation au-dessus d'une fourchette tenue depuis au moins
+trois séances. Il vend au gain de +4 %, coupe à -3 %, ou libère le capital après dix séances sans
+progression. Dans tous les autres cas, il ne fait rien : **hold est la décision normale**.
+
+Le bot ne tourne que pendant la séance américaine, un cycle par heure, en laissant passer les
+30 premières minutes après l'ouverture. Hors séance, aucun appel à Claude n'est émis.
+
 ## Garde-fous
 
 Tous dans `.env`, tous vérifiés dans `claudetrader/risk.py` avant chaque ordre :
