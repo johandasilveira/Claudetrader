@@ -163,6 +163,24 @@ progression. Dans tous les autres cas, il ne fait rien : **hold est la décision
 Le bot ne tourne que pendant la séance américaine, un cycle par heure, en laissant passer les
 30 premières minutes après l'ouverture. Hors séance, aucun appel à Claude n'est émis.
 
+## Notifications sur le téléphone
+
+Le bot envoie ses propres notifications, signées « Claudetrader », via l'appli gratuite
+[ntfy](https://ntfy.sh) (iOS et Android, sans compte) :
+
+- **avant chaque demande IBKR Mobile** : quand la passerelle se reconnecte, le bot prévient qu'une
+  validation va arriver. Une demande IBKR Mobile **sans** ce message juste avant ne vient pas du bot :
+  refuse-la ;
+- à chaque ordre passé, avec le titre, la quantité, le prix et la raison ;
+- quand un ordre échoue, et quand le coupe-circuit de perte journalière se déclenche.
+
+Mise en place : installe ntfy, abonne-toi à un sujet au nom long et impossible à deviner, mets ce nom
+dans `NTFY_TOPIC` du `.env`, redémarre le bot, puis teste :
+
+```bash
+sudo docker compose run --rm bot notify-test
+```
+
 ## Garde-fous
 
 Tous dans `.env`, tous vérifiés dans `claudetrader/risk.py` avant chaque ordre :

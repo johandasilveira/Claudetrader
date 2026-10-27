@@ -70,6 +70,10 @@ class Settings:
 
     journal_path: str = "data/journal.jsonl"
 
+    # Notifications téléphone (ntfy). Le sujet est un secret : il vit dans le .env.
+    ntfy_topic: str = ""
+    ntfy_server: str = "https://ntfy.sh"
+
     @property
     def is_live_port(self) -> bool:
         return self.ib_port in LIVE_PORTS
@@ -135,6 +139,8 @@ def load_settings(env_file: str | None = ".env", shared_file: str | None = "sett
         dry_run=_bool(os.getenv("DRY_RUN"), True),
         live_trading_confirm=os.getenv("LIVE_TRADING_CONFIRM", "").strip(),
         journal_path=os.getenv("JOURNAL_PATH", "data/journal.jsonl"),
+        ntfy_topic=os.getenv("NTFY_TOPIC", "").strip(),
+        ntfy_server=os.getenv("NTFY_SERVER", "https://ntfy.sh").strip(),
     )
     settings.validate()
     return settings

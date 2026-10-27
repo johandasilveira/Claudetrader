@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from ib_async import IB, LimitOrder, MarketOrder, Stock, Trade
 
 from .config import Settings
+from .notify import Notifier
 from .models import AccountSnapshot, Bar, OpenOrderInfo, PositionInfo, SymbolData
 
 log = logging.getLogger(__name__)
@@ -16,8 +17,9 @@ DELAYED_MARKET_DATA = 3  # type de données : 3 = différées (gratuit), 1 = tem
 
 
 class IBKRBroker:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, notifier: Notifier | None = None):
         self.settings = settings
+        self.notifier = notifier or Notifier()
         self.ib = IB()
         self._contracts: dict[str, Stock] = {}
 
@@ -26,7 +28,7 @@ class IBKRBroker:
     def connect(self, retries: int = 1, retry_delay: float = 30.0) -> None:
         """Se connecte à la passerelle. Avec retries > 1, réessaie (utile au démarrage d'un conteneur)."""
         s = self.settings
-        last_error: Exception | None = None
+        warned = False
         for attempt in range(1, retries + 1):
             try:
                 log.info("Connexion à IBKR %s:%s (clientId=%s, readonly=%s) tentative %d/%d",
@@ -36,11 +38,21 @@ class IBKRBroker:
                                 account=s.ib_account, timeout=15)
                 break
             except (OSError, TimeoutError, ConnectionError) as exc:
-                last_error = exc
                 if attempt == retries:
                     raise
                 log.warning("Passerelle injoignable (%s). Nouvel essai dans %.0f s.", exc, retry_delay)
+                if retries > 1 and not warned:
+                    # Une seule alerte par coupure, envoyée avant la demande IBKR Mobile de la passerelle :
+                    # c'est ce qui permet de reconnaître une demande légitime.
+                    self.notifier.send(
+                        "La passerelle IBKR se reconnecte. Une demande de validation IBKR Mobile va arriver "
+                        "dans les minutes qui viennent : c'est Claudetrader, tu peux l'approuver.",
+                        high=True, tags="key",
+                    )
+                    warned = True
                 self.ib.sleep(retry_delay)
+        if warned:
+            self.notifier.send("Connecté au compte IBKR, le bot reprend son travail.", tags="white_check_mark")
         self.ib.reqMarketDataType(DELAYED_MARKET_DATA)
         for symbol in s.symbols:
             self._contracts[symbol] = Stock(symbol, s.exchange, s.currency)

@@ -177,3 +177,46 @@ def test_daily_order_cap_is_enforced_within_one_cycle(tmp_path):
     s = Settings(symbols=["AAPL"], dry_run=False, anthropic_api_key="k", max_orders_per_day=1)
     broker, _ = run_bot(s, plan_with(buy(), buy()), tmp_path)
     assert len(broker.orders) == 1
+
+
+# ---- notifications ----
+
+class FakeNotifier:
+    enabled = True
+
+    def __init__(self):
+        self.messages = []
+
+    def send(self, message, **kw):
+        self.messages.append((message, kw))
+
+
+def test_order_sends_a_notification(tmp_path):
+    s = Settings(symbols=["AAPL"], dry_run=False, anthropic_api_key="k")
+    notifier = FakeNotifier()
+    broker = FakeBroker(snapshot())
+    bot = TradingBot(s, broker, FakeAgent(plan_with(buy())), RiskManager(s), Journal(str(tmp_path / "j.jsonl")), notifier)
+    bot.run_cycle()
+    assert len(notifier.messages) == 1
+    assert notifier.messages[0][0].startswith("Achat 5 AAPL à 100.00 $")
+
+
+def test_dry_run_sends_no_notification(tmp_path):
+    s = Settings(symbols=["AAPL"], dry_run=True)
+    notifier = FakeNotifier()
+    bot = TradingBot(s, FakeBroker(snapshot()), FakeAgent(plan_with(buy())), RiskManager(s),
+                     Journal(str(tmp_path / "j.jsonl")), notifier)
+    bot.run_cycle()
+    assert notifier.messages == []
+
+
+def test_disabled_notifier_is_silent():
+    from claudetrader.notify import Notifier
+    n = Notifier("")
+    assert not n.enabled
+    n.send("rien")  # ne doit ni lever ni appeler le réseau
+
+
+def test_notifier_never_raises_on_network_error():
+    from claudetrader.notify import Notifier
+    Notifier("sujet-de-test", server="http://127.0.0.1:9").send("ne doit pas lever")

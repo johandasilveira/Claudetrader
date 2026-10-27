@@ -1,4 +1,4 @@
-"""Interface en ligne de commande : `claudetrader status|once|run`."""
+"""Interface en ligne de commande : `claudetrader status|once|run|notify-test`."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from .bot import TradingBot
 from .broker import IBKRBroker
 from .config import load_settings
 from .journal import Journal
+from .notify import Notifier
 from .risk import RiskManager
 
 
@@ -62,11 +63,26 @@ def cmd_status(settings) -> int:
     return 0
 
 
+def _notifier(settings) -> Notifier:
+    return Notifier(settings.ntfy_topic, settings.ntfy_server)
+
+
 def _build_bot(settings) -> tuple[TradingBot, IBKRBroker]:
-    broker = IBKRBroker(settings)
+    notifier = _notifier(settings)
+    broker = IBKRBroker(settings, notifier)
     agent = ClaudeAgent(settings)
-    bot = TradingBot(settings, broker, agent, RiskManager(settings), Journal(settings.journal_path))
+    bot = TradingBot(settings, broker, agent, RiskManager(settings), Journal(settings.journal_path), notifier)
     return bot, broker
+
+
+def cmd_notify_test(settings) -> int:
+    notifier = _notifier(settings)
+    if not notifier.enabled:
+        print("NTFY_TOPIC est vide dans le .env : aucune notification ne peut partir.", file=sys.stderr)
+        return 1
+    notifier.send("Test : si tu lis ceci, les notifications Claudetrader fonctionnent.", tags="white_check_mark")
+    print(f"Notification envoyée sur le sujet {notifier.topic}. Vérifie ton téléphone.")
+    return 0
 
 
 def cmd_once(settings) -> int:
@@ -94,8 +110,9 @@ def cmd_run(settings) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="claudetrader", description="Bot de trading Claude + Interactive Brokers")
-    parser.add_argument("command", choices=["status", "once", "run"],
-                        help="status : lit le compte sans appeler Claude | once : un seul cycle | run : boucle continue")
+    parser.add_argument("command", choices=["status", "once", "run", "notify-test"],
+                        help="status : lit le compte sans appeler Claude | once : un seul cycle | run : boucle continue"
+                             " | notify-test : envoie une notification de test")
     parser.add_argument("--env", default=".env", help="fichier des secrets à charger (défaut : .env)")
     parser.add_argument("--settings", default="settings.env", help="fichier des réglages partagés (défaut : settings.env)")
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -112,7 +129,7 @@ def main(argv: list[str] | None = None) -> int:
     if not settings.dry_run:
         print("\nATTENTION : DRY_RUN=false, les ordres approuvés seront envoyés à IBKR.")
 
-    handlers = {"status": cmd_status, "once": cmd_once, "run": cmd_run}
+    handlers = {"status": cmd_status, "once": cmd_once, "run": cmd_run, "notify-test": cmd_notify_test}
     try:
         return handlers[args.command](settings)
     except (ConnectionRefusedError, TimeoutError, OSError) as exc:

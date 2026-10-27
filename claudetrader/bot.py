@@ -10,18 +10,22 @@ from .agent import ClaudeAgent
 from .broker import IBKRBroker
 from .config import Settings
 from .journal import Journal
+from .notify import Notifier
 from .risk import RiskManager
 
 log = logging.getLogger(__name__)
 
 
 class TradingBot:
-    def __init__(self, settings: Settings, broker: IBKRBroker, agent: ClaudeAgent, risk: RiskManager, journal: Journal):
+    def __init__(self, settings: Settings, broker: IBKRBroker, agent: ClaudeAgent, risk: RiskManager, journal: Journal,
+                 notifier: Notifier | None = None):
         self.s = settings
         self.broker = broker
         self.agent = agent
         self.risk = risk
         self.journal = journal
+        self.notifier = notifier or Notifier()
+        self._kill_notified_on: str | None = None
 
     def run_cycle(self) -> None:
         snap = self.broker.snapshot()
@@ -37,6 +41,10 @@ class TradingBot:
         if kill:
             log.warning("KILL SWITCH : %s", kill)
             self.journal.write("kill_switch", {"reason": kill})
+            today = snap.timestamp[:10]
+            if self._kill_notified_on != today:
+                self.notifier.send(f"Coupe-circuit déclenché : {kill}", high=True, tags="rotating_light")
+                self._kill_notified_on = today
 
         try:
             plan = self.agent.decide(snap, orders_today)
@@ -75,8 +83,16 @@ class TradingBot:
             except Exception as exc:
                 log.error("Échec d'envoi de l'ordre %s : %s", decision.symbol, exc)
                 self.journal.write("order_error", {"decision": decision.model_dump(), "error": str(exc)})
+                self.notifier.send(f"Ordre {decision.symbol} non envoyé : {exc}", high=True, tags="warning")
                 continue
             orders_today += 1
+            verb = "Achat" if decision.action == "buy" else "Vente"
+            price = f" à {decision.limit_price:.2f} $" if decision.limit_price else " au marché"
+            self.notifier.send(
+                f"{verb} {decision.quantity:g} {decision.symbol}{price} "
+                f"(statut IBKR : {trade.orderStatus.status}). {decision.rationale}",
+                tags="moneybag" if decision.action == "sell" else "shopping_cart",
+            )
             self.journal.write(
                 "order",
                 {
