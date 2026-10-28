@@ -134,6 +134,23 @@ Pour voir la fenêtre de la passerelle (utile en cas de message bloquant), mets 
 
 Les ports de la passerelle ne sont exposés que sur la boucle locale du serveur, jamais sur Internet. Garde le fichier `.env` hors de git (il l'est déjà via `.gitignore`), active un pare-feu qui n'ouvre que SSH, et utilise une clé SSH plutôt qu'un mot de passe.
 
+## Mise à jour automatique
+
+Une fois installée, la machine vérifie le dépôt toutes les 5 minutes et redéploie le bot dès qu'une
+nouvelle version est poussée sur la branche. Plus besoin de `git pull` à la main.
+
+```bash
+cd /opt/claudetrader && git pull && sudo bash deploy/install-auto-update.sh
+```
+
+- Seul le conteneur du bot est redéployé : la passerelle IBKR n'est jamais redémarrée par une mise
+  à jour, donc aucune demande IBKR Mobile n'en découle. Un changement de la configuration de la
+  passerelle reste à appliquer à la main.
+- Historique : `journalctl -u claudetrader-update -n 20`
+- Désactivation : `sudo systemctl disable --now claudetrader-update.timer`
+- Conséquence à garder en tête : quiconque peut pousser sur cette branche GitHub peut déployer du
+  code sur la machine qui trade. Protège ton compte GitHub par la double authentification.
+
 ## Deux fichiers de configuration
 
 | Fichier | Contenu | Dans git ? |
