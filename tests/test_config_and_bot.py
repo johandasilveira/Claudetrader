@@ -77,7 +77,7 @@ def snapshot() -> AccountSnapshot:
 def test_user_message_contains_limits_and_universe():
     s = Settings(symbols=["AAPL"])
     msg = ClaudeAgent.build_user_message(snapshot(), s, orders_today=2)
-    assert '"orders_already_sent_today": 2' in msg and '"AAPL"' in msg
+    assert '"orders_already_sent_today":2' in msg and '"AAPL"' in msg
 
 
 class FakeMessages:

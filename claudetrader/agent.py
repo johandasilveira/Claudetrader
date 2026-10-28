@@ -14,7 +14,9 @@ log = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """Tu gères un petit portefeuille d'actions américaines chez Interactive Brokers.
 À chaque cycle tu reçois l'état du compte, les positions, les ordres ouverts et les dernières bougies
-horaires de chaque symbole de l'univers. Tu renvoies un plan avec exactement une décision par symbole.
+journalières de chaque symbole de l'univers, la plus récente étant la séance en cours, encore incomplète.
+Chaque bougie est une ligne [date, ouverture, plus haut, plus bas, clôture, volume].
+Tu renvoies un plan avec exactement une décision par symbole.
 
 ## Stratégie : swing sur quelques jours, pas de scalping
 
@@ -75,13 +77,19 @@ class ClaudeAgent:
 
     @staticmethod
     def build_user_message(snap: AccountSnapshot, settings: Settings, orders_today: int) -> str:
+        # Format compact : une ligne par bougie, sans répéter les clés. Avec dix titres, cela divise
+        # par trois environ le nombre de jetons envoyés à chaque cycle, donc son coût.
         market = []
         for m in snap.market:
             market.append(
                 {
                     "symbol": m.symbol,
                     "last_price": m.last_price,
-                    "bars": [b.model_dump() for b in m.bars[-40:]],
+                    "bars": [
+                        [b.time[:16], round(b.open, 2), round(b.high, 2), round(b.low, 2), round(b.close, 2),
+                         int(b.volume)]
+                        for b in m.bars[-40:]
+                    ],
                 }
             )
         payload = {
@@ -111,7 +119,7 @@ class ClaudeAgent:
         }
         return (
             "État courant du compte et du marché (JSON) :\n"
-            + json.dumps(payload, ensure_ascii=False, indent=1)
+            + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
             + "\n\nRenvoie le plan de trading pour ce cycle."
         )
 

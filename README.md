@@ -160,8 +160,9 @@ signe de reprise, ou une sortie de consolidation au-dessus d'une fourchette tenu
 trois séances. Il vend au gain de +4 %, coupe à -3 %, ou libère le capital après dix séances sans
 progression. Dans tous les autres cas, il ne fait rien : **hold est la décision normale**.
 
-Le bot ne tourne que pendant la séance américaine, un cycle par heure, en laissant passer les
-30 premières minutes après l'ouverture. Hors séance, aucun appel à Claude n'est émis.
+Le bot surveille dix grandes valeurs américaines et ne tourne que pendant la séance : trois cycles,
+30 minutes après l'ouverture, en milieu de séance et une heure avant la clôture. Hors séance, aucun
+appel à Claude n'est émis.
 
 ## Notifications sur le téléphone
 
