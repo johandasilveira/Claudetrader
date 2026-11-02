@@ -33,3 +33,18 @@ class Journal:
                 if rec.get("kind") == "order" and rec.get("ts", "").startswith(today.isoformat()):
                     count += 1
         return count
+
+    def seen_plans(self) -> set[str]:
+        """Plans de l'analyste déjà traités (exécutés, expirés ou invalides) : jamais rejoués."""
+        seen: set[str] = set()
+        if not self.path.exists():
+            return seen
+        with self.path.open(encoding="utf-8") as f:
+            for line in f:
+                try:
+                    rec = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if rec.get("kind") == "plan_seen":
+                    seen.add(rec.get("key", ""))
+        return seen

@@ -10,6 +10,7 @@ from .agent import ClaudeAgent
 from .broker import IBKRBroker
 from .config import Settings
 from .journal import Journal
+from .models import AccountSnapshot, Decision
 from .notify import Notifier
 from .risk import RiskManager
 
@@ -17,8 +18,8 @@ log = logging.getLogger(__name__)
 
 
 class TradingBot:
-    def __init__(self, settings: Settings, broker: IBKRBroker, agent: ClaudeAgent, risk: RiskManager, journal: Journal,
-                 notifier: Notifier | None = None):
+    def __init__(self, settings: Settings, broker: IBKRBroker, agent: ClaudeAgent | None, risk: RiskManager,
+                 journal: Journal, notifier: Notifier | None = None):
         self.s = settings
         self.broker = broker
         self.agent = agent
@@ -37,14 +38,7 @@ class TradingBot:
         )
         self.journal.write("snapshot", snap.model_dump(exclude={"market"}))
 
-        kill = self.risk.kill_switch(snap)
-        if kill:
-            log.warning("KILL SWITCH : %s", kill)
-            self.journal.write("kill_switch", {"reason": kill})
-            today = snap.timestamp[:10]
-            if self._kill_notified_on != today:
-                self.notifier.send(f"Coupe-circuit déclenché : {kill}", high=True, tags="rotating_light")
-                self._kill_notified_on = today
+        self._check_kill_switch(snap)
 
         try:
             plan = self.agent.decide(snap, orders_today)
@@ -57,63 +51,83 @@ class TradingBot:
         self.journal.write("plan", plan.model_dump())
 
         for decision in plan.decisions:
-            verdict = self.risk.check(decision, snap, orders_today)
-            tag = "APPROUVÉ" if verdict.approved else "REJETÉ"
-            if decision.action == "hold":
-                log.info("%s : hold (%s)", decision.symbol, decision.rationale)
-                continue
-            log.info(
-                "%s : %s %s x%g %s%s -> %s (%s)",
-                decision.symbol, tag, decision.action, decision.quantity, decision.order_type,
-                f" @ {decision.limit_price}" if decision.limit_price else "", verdict.reason, decision.rationale,
-            )
-            self.journal.write("verdict", {"decision": decision.model_dump(), "approved": verdict.approved, "reason": verdict.reason})
-            if not verdict.approved:
-                continue
+            orders_today = self._handle_decision(decision, snap, orders_today)
 
-            if self.s.dry_run:
-                log.info("DRY_RUN : ordre non envoyé.")
-                self.journal.write("dry_run_order", decision.model_dump())
-                continue
+    def _handle_decision(self, decision: Decision, snap: AccountSnapshot, orders_today: int,
+                         source: str = "Claude") -> int:
+        """Passe une décision dans les garde-fous puis, si elle est approuvée, l'envoie à IBKR.
 
-            try:
-                trade = self.broker.place_order(
-                    decision.symbol, decision.action, decision.quantity, decision.order_type, decision.limit_price
-                )
-            except Exception as exc:
-                log.error("Échec d'envoi de l'ordre %s : %s", decision.symbol, exc)
-                self.journal.write("order_error", {"decision": decision.model_dump(), "error": str(exc)})
-                self.notifier.send(f"Ordre {decision.symbol} non envoyé : {exc}", high=True, tags="warning")
-                continue
-            orders_today += 1
-            verb = "Achat" if decision.action == "buy" else "Vente"
-            price = f" à {decision.limit_price:.2f} $" if decision.limit_price else " au marché"
-            self.notifier.send(
-                f"{verb} {decision.quantity:g} {decision.symbol}{price} "
-                f"(statut IBKR : {trade.orderStatus.status}). {decision.rationale}",
-                tags="moneybag" if decision.action == "sell" else "shopping_cart",
+        Retourne le nombre d'ordres envoyés aujourd'hui, mis à jour.
+        """
+        if decision.action == "hold":
+            log.info("%s : hold (%s)", decision.symbol, decision.rationale)
+            return orders_today
+        verdict = self.risk.check(decision, snap, orders_today)
+        tag = "APPROUVÉ" if verdict.approved else "REJETÉ"
+        log.info(
+            "[%s] %s : %s %s x%g %s%s -> %s (%s)",
+            source, decision.symbol, tag, decision.action, decision.quantity, decision.order_type,
+            f" @ {decision.limit_price}" if decision.limit_price else "", verdict.reason, decision.rationale,
+        )
+        self.journal.write("verdict", {"source": source, "decision": decision.model_dump(),
+                                       "approved": verdict.approved, "reason": verdict.reason})
+        if not verdict.approved:
+            return orders_today
+
+        if self.s.dry_run:
+            log.info("DRY_RUN : ordre non envoyé.")
+            self.journal.write("dry_run_order", decision.model_dump())
+            return orders_today
+
+        try:
+            trade = self.broker.place_order(
+                decision.symbol, decision.action, decision.quantity, decision.order_type, decision.limit_price
             )
-            self.journal.write(
-                "order",
-                {
-                    "decision": decision.model_dump(),
-                    "order_id": trade.order.orderId,
-                    "status": trade.orderStatus.status,
-                },
-            )
+        except Exception as exc:
+            log.error("Échec d'envoi de l'ordre %s : %s", decision.symbol, exc)
+            self.journal.write("order_error", {"decision": decision.model_dump(), "error": str(exc)})
+            self.notifier.send(f"Ordre {decision.symbol} non envoyé : {exc}", high=True, tags="warning")
+            return orders_today
+        verb = "Achat" if decision.action == "buy" else "Vente"
+        price = f" à {decision.limit_price:.2f} $" if decision.limit_price else " au marché"
+        self.notifier.send(
+            f"{verb} {decision.quantity:g} {decision.symbol}{price} "
+            f"(statut IBKR : {trade.orderStatus.status}). {decision.rationale}",
+            tags="moneybag" if decision.action == "sell" else "shopping_cart",
+        )
+        self.journal.write(
+            "order",
+            {
+                "source": source,
+                "decision": decision.model_dump(),
+                "order_id": trade.order.orderId,
+                "status": trade.orderStatus.status,
+            },
+        )
+        return orders_today + 1
+
+    def _check_kill_switch(self, snap: AccountSnapshot) -> None:
+        kill = self.risk.kill_switch(snap)
+        if kill:
+            log.warning("KILL SWITCH : %s", kill)
+            self.journal.write("kill_switch", {"reason": kill})
+            today = snap.timestamp[:10]
+            if self._kill_notified_on != today:
+                self.notifier.send(f"Coupe-circuit déclenché : {kill}", high=True, tags="rotating_light")
+                self._kill_notified_on = today
 
     def _sleep_until_market(self) -> bool:
-        """Hors séance, attend la prochaine ouverture sans appeler Claude.
+        """Hors séance, attend la prochaine ouverture sans rien faire.
 
-        Retourne True si le cycle doit être sauté. Un appel API hors marché ne
-        peut rien décider d'utile et coûte le prix d'un cycle complet.
+        Retourne True si le cycle doit être sauté : hors marché, aucun ordre ne peut
+        partir et un appel à Claude ne servirait à rien.
         """
         if not self.s.trade_hours_only or market.is_open():
             return False
         secs = market.seconds_until_open()
         opening = market.next_open()
         log.info(
-            "Marché fermé. Prochaine ouverture : %s (dans %.1f h). Aucun appel à Claude d'ici là.",
+            "Marché fermé. Prochaine ouverture : %s (dans %.1f h).",
             opening.strftime("%d/%m %H:%M %Z"), secs / 3600,
         )
         # On se réveille au plus tard toutes les heures pour garder la connexion vivante.

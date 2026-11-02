@@ -1,0 +1,10 @@
+{
+  "_comment": "Identifiants de contrat IBKR (contract_id) des titres de SYMBOLS, pour get_price_history. Ajoute chaque nouveau titre résolu par search_contracts (cotation principale américaine, symbole exact).",
+  "AAPL": 265598,
+  "AMD": 4391,
+  "JPM": 1520593,
+  "META": 107113386,
+  "NVDA": 4815747,
+  "SPY": 756733,
+  "TSLA": 76792991
+}

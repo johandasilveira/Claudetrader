@@ -134,6 +134,22 @@ Pour voir la fenêtre de la passerelle (utile en cas de message bloquant), mets 
 
 Les ports de la passerelle ne sont exposés que sur la boucle locale du serveur, jamais sur Internet. Garde le fichier `.env` hors de git (il l'est déjà via `.gitignore`), active un pare-feu qui n'ouvre que SSH, et utilise une clé SSH plutôt qu'un mot de passe.
 
+## Qui décide : l'analyste Claude
+
+Depuis novembre 2026 (`DECISION_SOURCE=analyst`), le bot n'appelle plus l'API Claude. Les décisions
+viennent de Claude lui-même, lancé par une tâche planifiée trois fois par séance (10h05, 12h35 et
+15h05 heure de New York) :
+
+1. Claude suit `analyst/PLAYBOOK.md` : il lit le compte et les cours par le connecteur IBKR, applique
+   la stratégie swing, puis publie un plan dans `orders/` sur la branche `claude/ibkr-bot`.
+2. La mise à jour automatique amène le plan sur la machine en 5 minutes, sans reconstruire le bot.
+3. Le bot vérifie toutes les 3 minutes : il exécute une seule fois chaque plan valable, en le passant
+   dans les garde-fous, et applique lui-même un stop-loss à -3 % et une prise de bénéfice à +5 %, même
+   si aucune analyse n'arrive.
+
+Les fichiers de `orders/` forment le journal des analyses, lisible directement sur GitHub. L'ancien
+mode (`DECISION_SOURCE=claude_api`) reste disponible.
+
 ## Mise à jour automatique
 
 Une fois installée, la machine vérifie le dépôt toutes les 5 minutes et redéploie le bot dès qu'une

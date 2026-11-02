@@ -36,7 +36,12 @@ class Settings:
     ib_account: str = ""
     trading_mode: str = "paper"  # paper ou live
 
-    # Claude
+    # Origine des décisions : "analyst" = plans écrits par Claude en session dans orders/,
+    # "claude_api" = le bot appelle lui-même l'API Claude à chaque cycle.
+    decision_source: str = "analyst"
+    orders_dir: str = "orders"
+
+    # Claude (mode claude_api uniquement)
     anthropic_api_key: str = ""
     claude_model: str = "claude-opus-5-5"
     claude_effort: str = "high"
@@ -59,6 +64,9 @@ class Settings:
     allow_fractional: bool = False
     min_order_value: float = 1.0
     max_open_positions: int = 2
+    # Sorties mécaniques appliquées par le bot lui-même, sans attendre l'analyste (0 = désactivé).
+    stop_loss_pct: float = 3.0
+    take_profit_pct: float = 5.0
 
     # Cadence
     trade_hours_only: bool = True
@@ -99,7 +107,9 @@ class Settings:
                 f"Trading REEL demandé (TRADING_MODE={self.trading_mode}, port {self.ib_port}). Pour l'autoriser, "
                 f"mets LIVE_TRADING_CONFIRM={LIVE_CONFIRM_PHRASE} dans le .env."
             )
-        if not self.dry_run and not self.anthropic_api_key:
+        if self.decision_source not in ("analyst", "claude_api"):
+            raise ValueError("DECISION_SOURCE doit valoir analyst ou claude_api.")
+        if self.decision_source == "claude_api" and not self.dry_run and not self.anthropic_api_key:
             raise ValueError("ANTHROPIC_API_KEY manquante.")
 
 
@@ -116,6 +126,8 @@ def load_settings(env_file: str | None = ".env", shared_file: str | None = "sett
         ib_client_id=_int("IB_CLIENT_ID", 7),
         ib_account=os.getenv("IB_ACCOUNT", "").strip(),
         trading_mode=os.getenv("TRADING_MODE", "paper").strip().lower(),
+        decision_source=os.getenv("DECISION_SOURCE", "analyst").strip().lower(),
+        orders_dir=os.getenv("ORDERS_DIR", "orders").strip(),
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", "").strip(),
         claude_model=os.getenv("CLAUDE_MODEL", "claude-opus-5-5").strip(),
         claude_effort=os.getenv("CLAUDE_EFFORT", "high").strip(),
@@ -134,6 +146,8 @@ def load_settings(env_file: str | None = ".env", shared_file: str | None = "sett
         allow_fractional=_bool(os.getenv("ALLOW_FRACTIONAL"), False),
         min_order_value=_float("MIN_ORDER_VALUE", 1.0),
         max_open_positions=_int("MAX_OPEN_POSITIONS", 2),
+        stop_loss_pct=_float("STOP_LOSS_PCT", 3.0),
+        take_profit_pct=_float("TAKE_PROFIT_PCT", 5.0),
         trade_hours_only=_bool(os.getenv("TRADE_HOURS_ONLY"), True),
         skip_first_minutes=_int("SKIP_FIRST_MINUTES", 30),
         dry_run=_bool(os.getenv("DRY_RUN"), True),

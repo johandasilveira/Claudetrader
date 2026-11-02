@@ -54,17 +54,52 @@ class IBKRBroker:
         if warned:
             self.notifier.send("Connecté au compte IBKR, le bot reprend son travail.", tags="white_check_mark")
         self.ib.reqMarketDataType(DELAYED_MARKET_DATA)
-        for symbol in s.symbols:
-            self._contracts[symbol] = Stock(symbol, s.exchange, s.currency)
-        qualified = self.ib.qualifyContracts(*self._contracts.values())
-        missing = set(s.symbols) - {c.symbol for c in qualified}
-        if missing:
-            raise RuntimeError(f"Contrats introuvables chez IBKR : {sorted(missing)}")
+        if s.decision_source == "claude_api":
+            # L'agent API analyse tout l'univers à chaque cycle : on qualifie tout d'emblée.
+            for symbol in s.symbols:
+                self._contracts[symbol] = Stock(symbol, s.exchange, s.currency)
+            qualified = self.ib.qualifyContracts(*self._contracts.values())
+            missing = set(s.symbols) - {c.symbol for c in qualified if c}
+            if missing:
+                raise RuntimeError(f"Contrats introuvables chez IBKR : {sorted(missing)}")
+        # En mode analyste, chaque contrat est résolu au moment où un ordre le concerne.
         log.info("Connecté. Compte(s) : %s", self.ib.managedAccounts())
 
     def disconnect(self) -> None:
         if self.ib.isConnected():
             self.ib.disconnect()
+
+    def contract(self, symbol: str) -> Stock | None:
+        """Contrat IBKR qualifié pour un symbole, mis en cache. None si IBKR ne le connaît pas."""
+        if symbol in self._contracts:
+            return self._contracts[symbol]
+        try:
+            qualified = [c for c in self.ib.qualifyContracts(Stock(symbol, self.settings.exchange,
+                                                                   self.settings.currency)) if c]
+        except Exception as exc:
+            log.warning("Qualification de %s impossible : %s", symbol, exc)
+            return None
+        if not qualified:
+            return None
+        self._contracts[symbol] = qualified[0]
+        return qualified[0]
+
+    def last_price(self, symbol: str) -> float | None:
+        """Dernier cours connu (bougies d'une minute, sinon clôture journalière), ou None."""
+        contract = self.contract(symbol)
+        if contract is None:
+            return None
+        for duration, size in (("1800 S", "1 min"), ("2 D", "1 day")):
+            try:
+                bars = self.ib.reqHistoricalData(contract, endDateTime="", durationStr=duration,
+                                                 barSizeSetting=size, whatToShow="TRADES", useRTH=True,
+                                                 formatDate=2)
+            except Exception as exc:
+                log.warning("Historique %s (%s) indisponible : %s", symbol, size, exc)
+                continue
+            if bars and bars[-1].close > 0:
+                return float(bars[-1].close)
+        return None
 
     @property
     def account(self) -> str:
@@ -109,7 +144,9 @@ class IBKRBroker:
         return float(value)
 
     def _bars(self, symbol: str) -> list[Bar]:
-        contract = self._contracts[symbol]
+        contract = self.contract(symbol)
+        if contract is None:
+            return []
         bars = self.ib.reqHistoricalData(
             contract,
             endDateTime="",
@@ -124,7 +161,7 @@ class IBKRBroker:
             for b in bars
         ]
 
-    def snapshot(self) -> AccountSnapshot:
+    def snapshot(self, include_market: bool = True) -> AccountSnapshot:
         positions = []
         for item in self.ib.portfolio(self.account):
             positions.append(
@@ -134,6 +171,7 @@ class IBKRBroker:
                     avg_cost=float(item.averageCost),
                     market_value=float(item.marketValue),
                     unrealized_pnl=float(item.unrealizedPNL),
+                    market_price=float(item.marketPrice) if item.marketPrice == item.marketPrice else None,
                 )
             )
         open_orders = [
@@ -148,7 +186,7 @@ class IBKRBroker:
             for t in self.ib.openTrades()
         ]
         market = []
-        for symbol in self.settings.symbols:
+        for symbol in (self.settings.symbols if include_market else []):
             bars = self._bars(symbol)
             last = bars[-1].close if bars else None
             market.append(SymbolData(symbol=symbol, last_price=last, bars=bars))
@@ -175,7 +213,9 @@ class IBKRBroker:
     # ---- exécution ----
 
     def place_order(self, symbol: str, action: str, quantity: float, order_type: str, limit_price: float | None) -> Trade:
-        contract = self._contracts[symbol]
+        contract = self.contract(symbol)
+        if contract is None:
+            raise ValueError(f"{symbol} est inconnu chez IBKR.")
         ib_action = "BUY" if action == "buy" else "SELL"
         # Quantité entière si possible, sinon fraction arrondie à 4 décimales (précision acceptée par IBKR).
         qty: float = int(quantity) if float(quantity).is_integer() else round(float(quantity), 4)

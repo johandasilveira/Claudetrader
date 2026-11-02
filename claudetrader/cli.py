@@ -1,4 +1,4 @@
-"""Interface en ligne de commande : `claudetrader status|once|run|notify-test`."""
+"""Interface en ligne de commande : `claudetrader status|once|run|notify-test|validate-plan`."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from .agent import ClaudeAgent
 from .bot import TradingBot
 from .broker import IBKRBroker
 from .config import load_settings
+from .executor import Executor
 from .journal import Journal
 from .notify import Notifier
 from .risk import RiskManager
@@ -27,9 +28,12 @@ def _setup_logging(verbose: bool) -> None:
 def _banner(settings) -> None:
     mode = "DRY_RUN (aucun ordre envoyé)" if settings.dry_run else "ORDRES RÉELS ACTIVÉS"
     compte = "RÉEL" if settings.is_live else "PAPIER"
-    print(f"Claudetrader | port {settings.ib_port} ({compte}) | {mode} | modèle {settings.claude_model}")
-    print(f"Univers : {', '.join(settings.symbols)} | limites : ordre {settings.max_order_value:g}, "
-          f"position {settings.max_position_value:g}, perte/jour {settings.max_daily_loss:g}")
+    source = (f"décisions : analyste Claude, plans dans {settings.orders_dir}/"
+              if settings.decision_source == "analyst" else f"décisions : API Claude ({settings.claude_model})")
+    print(f"Claudetrader | port {settings.ib_port} ({compte}) | {mode} | {source}")
+    print(f"Titres autorisés : {len(settings.symbols)} | limites : ordre {settings.min_order_value:g}-"
+          f"{settings.max_order_value:g}, position {settings.max_position_value:g}, perte/jour "
+          f"{settings.max_daily_loss:g}, stop -{settings.stop_loss_pct:g} %, objectif +{settings.take_profit_pct:g} %")
 
 
 def _side_settings(settings):
@@ -44,7 +48,7 @@ def cmd_status(settings) -> int:
     broker = IBKRBroker(settings)
     broker.connect()
     try:
-        snap = broker.snapshot()
+        snap = broker.snapshot(include_market=settings.decision_source == "claude_api")
     finally:
         broker.disconnect()
     print(f"\nCompte {snap.account} ({snap.currency})")
@@ -53,11 +57,13 @@ def cmd_status(settings) -> int:
     print(f"  PnL du jour       : {snap.daily_pnl:,.2f}")
     print("\nPositions :" if snap.positions else "\nAucune position.")
     for p in snap.positions:
-        print(f"  {p.symbol:6} {p.quantity:>8g} @ {p.avg_cost:.2f}  valeur {p.market_value:,.2f}  PnL {p.unrealized_pnl:,.2f}")
+        print(f"  {p.symbol:6} {p.quantity:>8g} @ {p.avg_cost:.2f}  cours {p.market_price or 0:.2f}  "
+              f"valeur {p.market_value:,.2f}  PnL {p.unrealized_pnl:,.2f}")
     print("\nOrdres ouverts :" if snap.open_orders else "\nAucun ordre ouvert.")
     for o in snap.open_orders:
         print(f"  {o.symbol:6} {o.action} {o.quantity:g} {o.order_type} {o.limit_price or ''} [{o.status}]")
-    print("\nDerniers cours :")
+    if snap.market:
+        print("\nDerniers cours :")
     for m in snap.market:
         print(f"  {m.symbol:6} {m.last_price if m.last_price is not None else 'n/a'}  ({len(m.bars)} bougies)")
     return 0
@@ -70,8 +76,11 @@ def _notifier(settings) -> Notifier:
 def _build_bot(settings) -> tuple[TradingBot, IBKRBroker]:
     notifier = _notifier(settings)
     broker = IBKRBroker(settings, notifier)
-    agent = ClaudeAgent(settings)
-    bot = TradingBot(settings, broker, agent, RiskManager(settings), Journal(settings.journal_path), notifier)
+    journal = Journal(settings.journal_path)
+    if settings.decision_source == "analyst":
+        bot = Executor(settings, broker, None, RiskManager(settings), journal, notifier)
+    else:
+        bot = TradingBot(settings, broker, ClaudeAgent(settings), RiskManager(settings), journal, notifier)
     return bot, broker
 
 
@@ -110,15 +119,19 @@ def cmd_run(settings) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="claudetrader", description="Bot de trading Claude + Interactive Brokers")
-    parser.add_argument("command", choices=["status", "once", "run", "notify-test"],
-                        help="status : lit le compte sans appeler Claude | once : un seul cycle | run : boucle continue"
-                             " | notify-test : envoie une notification de test")
+    parser.add_argument("command", choices=["status", "once", "run", "notify-test", "validate-plan"],
+                        help="status : lit le compte | once : un seul cycle | run : boucle continue"
+                             " | notify-test : notification de test | validate-plan FICHIER : vérifie un plan")
+    parser.add_argument("path", nargs="?", help="fichier de plan pour validate-plan")
     parser.add_argument("--env", default=".env", help="fichier des secrets à charger (défaut : .env)")
     parser.add_argument("--settings", default="settings.env", help="fichier des réglages partagés (défaut : settings.env)")
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
 
     _setup_logging(args.verbose)
+    if args.command == "validate-plan":
+        from .plan import main as validate
+        return validate([args.path] if args.path else [])
     try:
         settings = load_settings(args.env, args.settings)
     except ValueError as exc:

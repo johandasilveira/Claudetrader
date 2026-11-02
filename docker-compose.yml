@@ -50,8 +50,11 @@ services:
       IB_HOST: ib-gateway
       IB_PORT: ${IB_PORT_DOCKER:-4003}
       JOURNAL_PATH: /app/data/journal.jsonl
+      ORDERS_DIR: /app/orders
     volumes:
       - ./data:/app/data
+      # Plans écrits par l'analyste et récupérés par la mise à jour automatique : visibles sans reconstruction.
+      - ./orders:/app/orders:ro
 
 volumes:
   gateway_settings:

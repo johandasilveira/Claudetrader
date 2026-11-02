@@ -37,13 +37,16 @@ class RiskManager:
         if d.action == "hold":
             return RiskVerdict(d, False, "hold")
 
-        if d.symbol not in self.s.symbols:
+        buying = d.action == "buy"
+        # Les limites d'entrée ne s'appliquent qu'aux achats : une vente réduit le risque et ne doit
+        # jamais être bloquée (coupe d'une perte, titre retiré de la liste, nombre d'ordres atteint).
+        if buying and d.symbol not in self.s.symbols:
             return RiskVerdict(d, False, f"{d.symbol} n'est pas dans l'univers autorisé.")
         if d.quantity <= 0:
             return RiskVerdict(d, False, "Quantité nulle ou négative.")
-        if not self.s.allow_fractional and d.quantity != int(d.quantity):
+        if buying and not self.s.allow_fractional and d.quantity != int(d.quantity):
             return RiskVerdict(d, False, f"Quantité fractionnaire {d.quantity} alors que ALLOW_FRACTIONAL=false.")
-        if orders_today >= self.s.max_orders_per_day:
+        if buying and orders_today >= self.s.max_orders_per_day:
             return RiskVerdict(d, False, f"Limite de {self.s.max_orders_per_day} ordres par jour atteinte.")
 
         price = self._price(d.symbol, snap)
@@ -65,9 +68,9 @@ class RiskManager:
             ref_price = price
 
         notional = d.quantity * ref_price
-        if notional < self.s.min_order_value:
+        if buying and notional < self.s.min_order_value:
             return RiskVerdict(d, False, f"Ordre de {notional:.2f} < MIN_ORDER_VALUE {self.s.min_order_value:.2f}.")
-        if notional > self.s.max_order_value:
+        if buying and notional > self.s.max_order_value:
             return RiskVerdict(d, False, f"Ordre de {notional:.2f} > MAX_ORDER_VALUE {self.s.max_order_value:.2f}.")
 
         current_qty = self._position_qty(d.symbol, snap)
