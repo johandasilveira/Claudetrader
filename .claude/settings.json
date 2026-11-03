@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(date:*)",
+      "Bash(python3:*)",
+      "Bash(pip install:*)",
+      "Bash(git fetch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git -c:*)",
+      "Bash(git push:*)",
+      "mcp__Interactive_Brokers_IBKR__get_flow_type",
+      "mcp__Interactive_Brokers_IBKR__get_account_summary",
+      "mcp__Interactive_Brokers_IBKR__get_account_balances",
+      "mcp__Interactive_Brokers_IBKR__get_account_positions",
+      "mcp__Interactive_Brokers_IBKR__get_account_orders",
+      "mcp__Interactive_Brokers_IBKR__get_account_trades",
+      "mcp__Interactive_Brokers_IBKR__get_price_history",
+      "mcp__Interactive_Brokers_IBKR__get_price_snapshot",
+      "mcp__Interactive_Brokers_IBKR__search_contracts",
+      "mcp__Interactive_Brokers_IBKR__get_earnings_insight",
+      "mcp__Interactive_Brokers_IBKR__search_earnings_insights",
+      "PushNotification",
+      "ReadNotifications"
+    ]
+  }
+}
