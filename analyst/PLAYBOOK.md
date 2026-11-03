@@ -26,6 +26,12 @@ seuls titres que le bot accepte d'acheter.
 
 ## 1. État du compte (connecteur IBKR)
 
+Vérifie d'abord que le connecteur Interactive Brokers est disponible dans cette session (outils
+`mcp__Interactive_Brokers_IBKR__*`, à charger au besoin par la recherche d'outils). S'il est absent ou
+refuse tout appel, ne devine rien : publie un plan sans ordre dont les `notes` expliquent le problème,
+envoie une notification « Claudetrader : connecteur IBKR indisponible dans la session d'analyse,
+aucune décision prise », puis arrête-toi.
+
 - `get_account_balances` : liquidités en USD disponibles pour acheter.
 - `get_account_positions` : positions, prix de revient, P&L latent.
 - `get_account_orders` avec `show_completed: true` et `get_account_trades` (`TODAY`) : ce qui s'est
