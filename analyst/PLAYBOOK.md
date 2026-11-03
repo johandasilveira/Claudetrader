@@ -60,9 +60,27 @@ Pour chaque titre de `SYMBOLS` que tu examines, récupère 40 bougies journaliè
 son identifiant avec `search_contracts` (symbole exact, cotation principale américaine) et ajoute-le
 au fichier.
 
-Ne parcours pas forcément les 45 titres à chaque fois. Commence par l'indice (SPY, QQQ) pour le
-contexte, puis les valeurs dont le secteur est porteur, et arrête-toi quand tu tiens un candidat
-solide ou après une quinzaine de titres.
+**Couvre tous les secteurs chaque jour, pas seulement la technologie.** Les 45 titres de `SYMBOLS` se
+répartissent ainsi :
+
+| Secteur | Titres |
+|---|---|
+| Technologie et semi-conducteurs | AAPL, MSFT, NVDA, AVGO, AMD, ADBE, CRM, ORCL, INTC, QCOM, MU, PLTR |
+| Internet et médias | GOOGL, META, NFLX, DIS |
+| Consommation | AMZN, TSLA, HD, MCD, NKE, UBER |
+| Consommation de base | WMT, COST, KO, PEP |
+| Santé | UNH, LLY, JNJ, ABBV, MRK, PFE |
+| Finance | JPM, BAC, GS, V, MA |
+| Énergie | XOM, CVX |
+| Industrie | BA, CAT, GE |
+| Indices | SPY, QQQ, IWM |
+
+À chaque séance : commence par SPY pour le contexte, puis les titres sous surveillance notés dans le
+plan précédent, puis au moins **deux titres de chaque secteur**, en privilégiant ceux que les plans
+du jour n'ont pas encore examinés. Sur les trois séances d'une journée, l'essentiel des 45 titres doit
+avoir été vu. Quand un secteur entier baisse, cherche les candidats dans ceux qui résistent : la
+stratégie est acheteuse, elle doit aller là où se trouve la force. Arrête-toi quand tu tiens un
+candidat solide ou après une vingtaine de titres. Note dans `notes` la liste des titres examinés.
 
 **Stratégie : swing de 2 à 10 séances, positions acheteuses uniquement.** Un aller-retour coûte
 environ 2 USD de commission, soit 1,5 % d'un ordre de 130 USD : ne vise que des mouvements de +4 à +6 %.
