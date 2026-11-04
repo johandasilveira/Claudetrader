@@ -1,0 +1,11 @@
+{
+  "id": "2026-11-04T2007",
+  "created_at": "2026-11-04T20:07:00Z",
+  "expires_at": "2026-11-04T20:58:00Z",
+  "market_summary": "Le rebond tient jusqu'en fin de séance. JPM confirme sa sortie de fourchette (350,2 $), GOOGL tient au-dessus de sa base (291,5 $), WMT reste au plus haut.",
+  "orders": [
+    {"symbol": "JPM", "action": "buy", "notional_usd": 125, "order_type": "limit",
+     "rationale": "Reprise de l'achat de 12h35 NY, jamais exécuté. Sortie de consolidation confirmée : JPM tient au-dessus de 346 $ toute la séance. Invalidation sous 346 $."}
+  ],
+  "notes": "INCIDENT : le plan 2026-11-04T1736 (achat JPM) n'a pas été exécuté. Aucun ordre ni position chez IBKR 11 minutes puis 2 h 30 après publication : le bot n'exécute pas les plans. Cause inconnue (passerelle déconnectée, version non déployée ou plantage), Johan prévenu, diagnostic sur la machine nécessaire. Ce plan expire avant la clôture pour ne jamais acheter hors séance. GOOGL : sortie de base confirmée en fin de séance (291,5 $ > 288 $), mais tendance de fond baissière ; pas d'achat tant que l'exécution n'est pas rétablie et vérifiée. WMT et LLY : toujours au plus haut, repli attendu."
+}
