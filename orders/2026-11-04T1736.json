@@ -1,0 +1,11 @@
+{
+  "id": "2026-11-04T1736",
+  "created_at": "2026-11-04T17:36:00Z",
+  "expires_at": "2026-11-04T19:06:00Z",
+  "market_summary": "Le rebond se confirme en milieu de séance : SPY +1,8 % à 768 $. Les secteurs défensifs et la finance mènent (WMT +4,4 %, JPM +3,8 %), l'énergie et l'industrie décrochent (XOM -5,4 %, CAT -5,7 %). Premier signal d'achat net de la semaine sur JPM.",
+  "orders": [
+    {"symbol": "JPM", "action": "buy", "notional_usd": 125, "order_type": "limit",
+     "rationale": "Sortie de consolidation : fourchette 330-346 $ tenue cinq semaines, cassée ce matin et tenue depuis trois heures à 350,9 $ (+1,4 % au-dessus du haut). Invalidation sous 346 $, objectif vers 368 $ (+5 %)."}
+  ],
+  "notes": "Compte : 434,03 USD, aucune position. Achat JPM avancé à cette séance au lieu de 15h05 NY : la cassure tient nettement, et la séance de fin de journée a été perdue hier. Titres examinés : SPY, JPM, WMT, XOM, CAT, GOOGL (identifiants ajoutés). WMT en forte tendance haussière, de 108 à 130 $ en un mois, +4,4 % aujourd'hui à un plus haut : hausse verticale, à acheter sur repli de 2 à 4 % vers 125-127 $. XOM casse sous 177 $ (-5,4 %) : écarté. CAT en tendance baissière de 808 à 588 $ : écarté. GOOGL : après la chute du 29/10 (-12,6 %), base de quatre séances entre 277 et 288 $, et sortie par le haut aujourd'hui à 292 $ (+4,3 %) : configuration de retournement, plus risquée car contre la tendance de fond ; décision à 15h05 NY si la clôture approche au-dessus de 288 $. Toujours sous surveillance : LLY (repli attendu vers 1 360-1 390 $)."
+}
