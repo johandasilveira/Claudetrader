@@ -14,12 +14,17 @@ from pathlib import Path
 from .models import AnalystPlan
 
 
-def allowed_symbols(settings_path: str = "settings.env") -> set[str]:
+def _setting(settings_path: str, key: str) -> str | None:
     for line in Path(settings_path).read_text(encoding="utf-8").splitlines():
         line = line.strip()
-        if line.startswith("SYMBOLS="):
-            return {s.strip().upper() for s in line.split("=", 1)[1].split(",") if s.strip()}
-    return set()
+        if line.startswith(f"{key}="):
+            return line.split("=", 1)[1].strip()
+    return None
+
+
+def allowed_symbols(settings_path: str = "settings.env") -> set[str]:
+    raw = _setting(settings_path, "SYMBOLS") or ""
+    return {s.strip().upper() for s in raw.split(",") if s.strip()}
 
 
 def main(argv: list[str]) -> int:
@@ -41,6 +46,12 @@ def main(argv: list[str]) -> int:
     if outside:
         print(f"PLAN INVALIDE : achat hors liste autorisée {outside} (voir SYMBOLS dans {settings}).", file=sys.stderr)
         return 1
+    if (_setting(settings, "ALLOW_FRACTIONAL") or "false").lower() not in ("1", "true", "yes", "on"):
+        fractional = [o.symbol for o in plan.orders if o.quantity and o.quantity != int(o.quantity)]
+        if fractional:
+            print(f"PLAN INVALIDE : quantité fractionnaire pour {fractional} ; IBKR n'accepte que des actions "
+                  f"entières par l'API.", file=sys.stderr)
+            return 1
     print(f"Plan valide : {plan.id}, {len(plan.orders)} ordre(s), valable jusqu'à {plan.expires_at.isoformat()}.")
     for o in plan.orders:
         size = f"{o.notional_usd:g} USD" if o.notional_usd else (f"x{o.quantity:g}" if o.quantity else "toute la position")

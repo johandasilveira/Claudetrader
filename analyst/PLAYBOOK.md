@@ -98,9 +98,12 @@ de ses résultats trimestriels si tu le sais.
 **Ne pas acheter faute de signal est normal. Mais quand une configuration est nette, prends-la** :
 rester indéfiniment en liquidités n'est pas une stratégie.
 
-Taille : `notional_usd` entre `MIN_ORDER_VALUE` et `MAX_ORDER_VALUE` (vise le haut de la fourchette,
-un petit ordre est mangé par la commission), sans dépasser les liquidités disponibles moins 10 USD.
-Ordre `limit` sans prix : le bot posera la limite à 0,2 % du dernier cours.
+Taille : **actions entières uniquement** (IBKR refuse les fractions passées par l'API, erreur 10243).
+Indique `quantity` en nombre entier d'actions, de sorte que `quantity × cours` tombe entre
+`MIN_ORDER_VALUE` et `MAX_ORDER_VALUE`, sans dépasser les liquidités disponibles moins 10 USD. Un titre
+dont une seule action dépasse `MAX_ORDER_VALUE` est inachetable : ne le propose pas, note-le comme
+écarté pour cette raison et cherche un candidat équivalent moins cher. Ordre `limit` sans prix : le bot
+posera la limite à 0,2 % du dernier cours.
 
 ## 4. Publier le plan
 

@@ -197,3 +197,19 @@ def test_cancelled_order_is_recorded_as_rejected_with_reason(tmp_path):
     assert len(rejected) == 1 and "10243" in rejected[0]["reason"]
     assert not any(l["kind"] == "order" for l in lines)        # pas compté comme ordre passé
     assert ex.journal.orders_today() == 0                      # le quota du jour n'est pas consommé
+
+
+def test_whole_shares_when_fractional_disabled(tmp_path):
+    write_plan(tmp_path, [{"symbol": "AAPL", "action": "buy", "notional_usd": 190, "rationale": "x"}])
+    broker = FakeBroker()  # AAPL à 100 $
+    make(tmp_path, broker, allow_fractional=False, max_order_value=200, max_position_value=210).run_cycle()
+    assert broker.orders == [("AAPL", "buy", 1.0, "limit", 100.2)]
+
+
+def test_validate_plan_rejects_fractional_quantity(tmp_path):
+    settings_file = tmp_path / "settings.env"
+    settings_file.write_text("SYMBOLS=AAPL,JPM\nALLOW_FRACTIONAL=false\n")
+    frac = write_plan(tmp_path, [{"symbol": "JPM", "action": "buy", "quantity": 0.35, "rationale": "x"}], plan_id="f1")
+    assert validate_plan([str(frac), str(settings_file)]) == 1
+    whole = write_plan(tmp_path, [{"symbol": "AAPL", "action": "buy", "quantity": 1, "rationale": "x"}], plan_id="f2")
+    assert validate_plan([str(whole), str(settings_file)]) == 0
