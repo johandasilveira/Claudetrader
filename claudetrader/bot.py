@@ -7,7 +7,7 @@ import time
 
 from . import market
 from .agent import ClaudeAgent
-from .broker import IBKRBroker
+from .broker import IBKRBroker, rejection_reason
 from .config import Settings
 from .journal import Journal
 from .models import AccountSnapshot, Decision
@@ -87,6 +87,14 @@ class TradingBot:
             log.error("Échec d'envoi de l'ordre %s : %s", decision.symbol, exc)
             self.journal.write("order_error", {"decision": decision.model_dump(), "error": str(exc)})
             self.notifier.send(f"Ordre {decision.symbol} non envoyé : {exc}", high=True, tags="warning")
+            return orders_today
+        reason = rejection_reason(trade)
+        if reason:
+            # Ordre envoyé mais annulé ou rejeté par IBKR : ce n'est pas un ordre passé.
+            log.error("Ordre %s refusé par IBKR : %s", decision.symbol, reason)
+            self.journal.write("order_rejected", {"source": source, "decision": decision.model_dump(),
+                                                  "order_id": trade.order.orderId, "reason": reason})
+            self.notifier.send(f"Ordre {decision.symbol} refusé par IBKR : {reason}", high=True, tags="warning")
             return orders_today
         verb = "Achat" if decision.action == "buy" else "Vente"
         price = f" à {decision.limit_price:.2f} $" if decision.limit_price else " au marché"

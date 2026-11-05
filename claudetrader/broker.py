@@ -237,4 +237,20 @@ class IBKRBroker:
             "Ordre %s %s %s x%s -> %s (orderId=%s)",
             trade.orderStatus.status, ib_action, symbol, quantity, order.orderType, order.orderId,
         )
+        reason = rejection_reason(trade)
+        if reason:
+            log.error("IBKR a refusé l'ordre %s %s : %s", ib_action, symbol, reason)
         return trade
+
+
+REJECTED_STATUSES = {"Cancelled", "ApiCancelled", "Inactive"}
+
+
+def rejection_reason(trade) -> str:
+    """Motif du refus si IBKR a annulé ou rejeté l'ordre, chaîne vide sinon."""
+    status = getattr(getattr(trade, "orderStatus", None), "status", "")
+    if status not in REJECTED_STATUSES:
+        return ""
+    messages = [f"{e.errorCode} {e.message}".strip() for e in getattr(trade, "log", [])
+                if getattr(e, "errorCode", 0) or (getattr(e, "message", "") and e.status in REJECTED_STATUSES)]
+    return "; ".join(dict.fromkeys(m for m in messages if m)) or f"statut {status}, sans motif transmis"

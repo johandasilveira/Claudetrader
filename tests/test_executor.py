@@ -176,3 +176,24 @@ def test_validate_plan_cli(tmp_path, capsys):
     mismatch = write_plan(tmp_path, [BUY_TSLA], plan_id="p4")
     mismatch.rename(tmp_path / "orders" / "autre.json")
     assert validate_plan([str(tmp_path / "orders" / "autre.json"), str(settings_file)]) == 1
+
+
+class RejectingBroker(FakeBroker):
+    def place_order(self, symbol, action, quantity, order_type, limit_price):
+        self.orders.append((symbol, action, quantity, order_type, limit_price))
+        entry = SimpleNamespace(status="Cancelled", errorCode=10243,
+                                message="Fractional-sized order cannot be placed via API.")
+        return SimpleNamespace(order=SimpleNamespace(orderId=99), orderStatus=SimpleNamespace(status="Cancelled"),
+                               log=[entry])
+
+
+def test_cancelled_order_is_recorded_as_rejected_with_reason(tmp_path):
+    write_plan(tmp_path, [BUY_TSLA])
+    broker = RejectingBroker()
+    ex = make(tmp_path, broker)
+    ex.run_cycle()
+    lines = [json.loads(l) for l in (tmp_path / "journal.jsonl").read_text().splitlines()]
+    rejected = [l for l in lines if l["kind"] == "order_rejected"]
+    assert len(rejected) == 1 and "10243" in rejected[0]["reason"]
+    assert not any(l["kind"] == "order" for l in lines)        # pas compté comme ordre passé
+    assert ex.journal.orders_today() == 0                      # le quota du jour n'est pas consommé
