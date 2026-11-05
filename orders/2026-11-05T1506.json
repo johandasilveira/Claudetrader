@@ -1,0 +1,8 @@
+{
+  "id": "2026-11-05T1506",
+  "created_at": "2026-11-05T15:06:00Z",
+  "expires_at": "2026-11-05T16:36:00Z",
+  "market_summary": "Analyse suspendue : l'exécution par le bot est en panne depuis le 04/11, aucun ordre ne peut aboutir.",
+  "orders": [],
+  "notes": "INCIDENT EN COURS : les deux plans d'achat JPM du 04/11 (2026-11-04T1736 et 2026-11-04T2007) n'ont produit aucun ordre chez IBKR. Ce matin : aucun ordre, aucune position, aucune transaction sur 7 jours. Diagnostic sur la machine demandé à Johan. Les analyses reprennent dès que l'exécution est vérifiée. Candidats en attente : JPM (sortie de fourchette 330-346 $), GOOGL (sortie de base 277-288 $), WMT et LLY (sur repli)."
+}
