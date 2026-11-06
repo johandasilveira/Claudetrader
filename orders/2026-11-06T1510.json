@@ -1,0 +1,11 @@
+{
+  "id": "2026-11-06T1510",
+  "created_at": "2026-11-06T15:10:00Z",
+  "expires_at": "2026-11-06T16:40:00Z",
+  "market_summary": "Stabilisation après la chute de -3,9 % de jeudi : SPY +0,8 % à 739 $ en début de séance. Les valeurs défensives, qui ont tenu pendant la baisse, offrent les premiers replis exploitables.",
+  "orders": [
+    {"symbol": "KO", "action": "buy", "quantity": 2, "order_type": "limit",
+     "rationale": "Repli dans une tendance haussière : KO monte de 90,8 $ (27/10) à 97,4 $, revient ce matin à 93,1 $, zone d'achat prévue, et rebondit à 95,1 $. Valeur défensive restée stable pendant la chute du marché. Invalidation sous 93,1 $, objectif vers 99-100 $."}
+  ],
+  "notes": "Compte : 434,03 USD, aucune position. Premier achat en actions entières : 2 KO, environ 190 USD. Titres examinés : SPY, KO, WMT. WMT descend à 123,0 $ (-6,7 % depuis son plus haut de 131,8 $), sous la zone d'achat prévue de 125-127 $, puis remonte à 125,2 $ : repli plus profond que prévu, la dynamique s'affaiblit ; achat seulement après une clôture de reprise au-dessus de 127 $. Une seule position ouverte à la fois tant que l'exécution n'est pas vérifiée. Identifiants PFE et UBER ajoutés pour les prochaines séances."
+}
