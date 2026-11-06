@@ -102,8 +102,13 @@ Taille : **actions entières uniquement** (IBKR refuse les fractions passées pa
 Indique `quantity` en nombre entier d'actions, de sorte que `quantity × cours` tombe entre
 `MIN_ORDER_VALUE` et `MAX_ORDER_VALUE`, sans dépasser les liquidités disponibles moins 10 USD. Un titre
 dont une seule action dépasse `MAX_ORDER_VALUE` est inachetable : ne le propose pas, note-le comme
-écarté pour cette raison et cherche un candidat équivalent moins cher. Ordre `limit` sans prix : le bot
-posera la limite à 0,2 % du dernier cours.
+écarté pour cette raison et cherche un candidat équivalent moins cher.
+
+Prix limite : **donne toujours un `limit_price` explicite à l'achat**, environ 0,5 % au-dessus du
+dernier cours que tu observes. Sans prix, le bot pose sa limite à +0,2 % d'un cours différé de
+plusieurs minutes : sur un titre qui remonte, l'ordre reste en dessous du marché et n'est pas exécuté
+(cas KO du 06/11, limite 94,93 \$ pendant que le titre remontait à 96 \$). Le garde-fou du bot refuse
+une limite à plus de 3 % de son propre cours : reste largement en deçà.
 
 ## 4. Publier le plan
 

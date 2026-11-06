@@ -1,0 +1,8 @@
+{
+  "id": "2026-11-06T1737",
+  "created_at": "2026-11-06T17:37:00Z",
+  "expires_at": "2026-11-06T19:07:00Z",
+  "market_summary": "Marché stable en milieu de séance (SPY 737,9 $). KO a rebondi comme prévu, de 93,1 à 96,0 $, mais l'ordre d'achat n'a pas été exécuté.",
+  "orders": [],
+  "notes": "PREMIÈRE EXÉCUTION RÉUSSIE : l'ordre du plan 2026-11-06T1510 (achat 2 KO) est bien arrivé chez IBKR (ordre 857599782, limite 94,93 $, valable jusqu'à la clôture). Il n'est pas exécuté : KO est remonté à 96,03 $ au-dessus de la limite, posée par le bot à partir d'un cours différé. L'ordre reste actif : il sera exécuté si KO revient à 94,93 $ aujourd'hui, meilleure entrée encore. Pas de nouvel ordre KO à 96 $ : l'entrée s'éloigne de la zone de 93 $, le rapport gain/risque se dégrade (stop sous 93,1 $ à -3 %, objectif 99-100 $ à +3,5 %). Playbook corrigé : prix limite explicite à environ +0,5 % du dernier cours pour tout achat. WMT 126,1 $, pas encore de clôture de reprise au-dessus de 127 $ : attente. Compte : 434,03 USD, aucune position."
+}
