@@ -1,0 +1,17 @@
+{
+  "id": "2026-11-09T2007",
+  "created_at": "2026-11-09T20:07:00Z",
+  "expires_at": "2026-11-09T21:37:00Z",
+  "market_summary": "Rebond solide confirmé en fin de séance : SPY 754,2 $ (+2,6 %), près du plus haut du jour, qui efface la chute de jeudi. KO stable à 95,8 $, PEP 143 $ au-dessus de son plus haut de vendredi.",
+  "orders": [
+    {
+      "symbol": "KO",
+      "action": "buy",
+      "quantity": 2,
+      "order_type": "limit",
+      "limit_price": 96.25,
+      "rationale": "Troisième émission : les plans 1510 et 1738 ne sont jamais arrivés chez IBKR. Repli dans tendance haussière avec marteau vendredi à 93,05 $, cours 95,78 $. Objectif 100 $, stop mécanique -3 %."
+    }
+  ],
+  "notes": "Suivi : aucun ordre, ni ouvert ni terminé, et aucune exécution chez IBKR pour les plans 2026-11-09T1510 et 2026-11-09T1738. Le bot ne transmet toujours rien : passerelle IB Gateway très probablement déconnectée depuis la revalidation hebdomadaire de dimanche. Johan a été prévenu à 17:38 UTC ; pas de réponse à cette heure. Plan réémis jusqu'à la clôture au cas où la passerelle revient. Compte : 434,03 USD, aucune position. Titres examinés : SPY, KO, PEP. Pour demain 10h05 : vérifier d'abord si les ordres arrivent ; KO, PEP, WMT, puis couverture JPM, CVX, NKE, AAPL, MRK."
+}
