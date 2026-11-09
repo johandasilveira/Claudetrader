@@ -1,0 +1,17 @@
+{
+  "id": "2026-11-09T1510",
+  "created_at": "2026-11-09T15:10:00Z",
+  "expires_at": "2026-11-09T16:40:00Z",
+  "market_summary": "Rebond après la chute de jeudi : SPY 748,2 $ (+1,8 %) mais encore sous ses 765-775 $ d'octobre. La technologie reste faible (NVDA 178,6 $, -25 % depuis début octobre ; INTC effondré). La force est du côté de la consommation de base (KO, PEP) et de DIS, qui ont tous rejeté leurs plus bas vendredi.",
+  "orders": [
+    {
+      "symbol": "KO",
+      "action": "buy",
+      "quantity": 2,
+      "order_type": "limit",
+      "limit_price": 95.75,
+      "rationale": "Repli dans tendance haussière : plus bas croissants depuis 85 $ (7 oct.), repli de 4,5 % depuis 97,39 $ jusqu'à 93,05 $ vendredi, puis marteau clôturant à 95,67 $. Cours 95,27 $. Objectif 100 $ (+5 %), stop mécanique -3 % vers 92,9 $, sous le plus bas de vendredi."
+    }
+  ],
+  "notes": "Compte : 434,03 USD, aucune position, aucun ordre ni exécution sur 7 jours. Titres examinés : SPY, KO, WMT, PEP, PFE, MRK, UBER, DIS, BAC, XOM, NVDA, INTC. Écartés : WMT 124,7 $ (repli de 5,4 % depuis 131,8 $, pas encore de reprise ; attendre une clôture au-dessus de 127 $) ; PEP 141,5 $ (même configuration que KO, marteau vendredi depuis 138 $, gardé en second choix pour ne pas doubler le secteur) ; DIS 117,5 $ (repli et reprise nets, mais résultats trimestriels probablement cette semaine) ; PFE 29,2 $ (cassure sous 29,9 $, faible) ; MRK 147 $ (fourchette 140-153 $ sans direction) ; UBER 69 $ (tendance baissière depuis 72 $, rebond non confirmé) ; BAC 50,3 $, XOM 164,7 $, NVDA 178,6 $, INTC 57,8 $ : tendances baissières. Identifiants ajoutés à conids.json : MRK, PEP, INTC, DIS. Sous surveillance pour 12h35 : exécution de KO, PEP, WMT, puis GOOGL, AAPL, JPM, CAT, CVX, NKE pour couvrir les autres secteurs."
+}
