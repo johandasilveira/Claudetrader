@@ -1,0 +1,17 @@
+{
+  "id": "2026-11-09T1738",
+  "created_at": "2026-11-09T17:38:00Z",
+  "expires_at": "2026-11-09T19:08:00Z",
+  "market_summary": "Le rebond se confirme : SPY 752,6 $ (+2,4 %), au plus haut du jour. La consommation de base tient bien (KO 95,7 $, PEP 143 $ au-dessus de son plus haut de vendredi). WMT reste faible à 124,7 $.",
+  "orders": [
+    {
+      "symbol": "KO",
+      "action": "buy",
+      "quantity": 2,
+      "order_type": "limit",
+      "limit_price": 96.2,
+      "rationale": "Nouvelle émission du plan de 15h10, jamais arrivé chez IBKR. Repli dans tendance haussière : plus bas croissants depuis 85 $, repli à 93,05 $ vendredi et marteau, cours 95,73 $ stable aujourd'hui. Objectif 100 $ (+4,5 %), stop mécanique -3 %."
+    }
+  ],
+  "notes": "Suivi : l'ordre KO du plan 2026-11-09T1510 (2 actions, limite 95,75 $) n'apparaît pas chez IBKR plus de 2 h après publication : ni ordre ouvert, ni ordre terminé, ni exécution. Le bot ne l'a donc pas envoyé : passerelle IB Gateway probablement déconnectée (revalidation hebdomadaire du dimanche) ou bot arrêté. Garde-fou peu probable (limite à +0,5 % du cours, 191,5 $ entre 80 et 200 $). Plan réémis au cas où la passerelle reviendrait ; Johan prévenu. Compte : 434,03 USD, aucune position. Titres examinés : SPY, KO, PEP, WMT, GOOGL, CAT. Écartés : GOOGL 291,6 $ et CAT 595,9 $ : une seule action dépasse MAX_ORDER_VALUE (200 $), inachetables ; WMT 124,7 $ sans reprise ; PEP 143 $ en reprise (au-dessus du plus haut de vendredi), second choix si KO n'est pas pris. Sous surveillance pour 15h05 : état de la passerelle, KO, PEP, puis JPM, CVX, NKE, AAPL."
+}
