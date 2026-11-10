@@ -1,0 +1,17 @@
+{
+  "id": "2026-11-10T1510",
+  "created_at": "2026-11-10T15:10:00Z",
+  "expires_at": "2026-11-10T16:40:00Z",
+  "market_summary": "Le marché consolide son rebond de lundi : SPY 751,9 $, stable à l'ouverture. KO poursuit sa reprise (96,1 $, plus haut du jour 96,7 $). WMT, PEP et DIS sans élan.",
+  "orders": [
+    {
+      "symbol": "KO",
+      "action": "buy",
+      "quantity": 2,
+      "order_type": "limit",
+      "limit_price": 96.6,
+      "rationale": "Repli dans tendance haussière confirmé : marteau vendredi à 93,05 $, deux clôtures de reprise (95,67 puis 96,03 $), cours 96,11 $. Objectif vers 100,5 $ (+4,5 %), stop mécanique -3 % vers 93,7 $."
+    }
+  ],
+  "notes": "Suivi : les trois plans d'hier (1510, 1738, 2007, achat de 2 KO) ne sont jamais arrivés chez IBKR : aucun ordre, ni exécution, sur 7 jours. La VM claudetrader est en marche (statut RUNNING via Compute Engine), donc la panne est dans la chaîne passerelle, bot ou mise à jour automatique ; sans accès SSH je ne peux pas trancher. Johan a répondu « c'est connecté » hier à 20:45 UTC, sans effet constaté avant la clôture. Compte : 434,03 USD, aucune position. Titres examinés : SPY, KO, PEP, WMT, DIS, BAC. Écartés : PEP 141,5 $ (reprise qui cale sous 143,5 $) ; WMT 125,1 $ (pas de clôture au-dessus de 127 $) ; DIS 117,8 $ (résultats probables cette semaine) ; BAC 50,9 $ (rebond dans une tendance baissière). Les données de prix IBKR renvoient par intermittence « Service Unavailable »."
+}
