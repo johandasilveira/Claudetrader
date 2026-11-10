@@ -1,0 +1,17 @@
+{
+  "id": "2026-11-10T1741",
+  "created_at": "2026-11-10T17:41:00Z",
+  "expires_at": "2026-11-10T19:11:00Z",
+  "market_summary": "Le marché rend une partie du rebond : SPY 745,2 $ (-1 %), au plus bas du jour. La consommation de base résiste nettement : KO 96,9 $ et PEP 143,6 $ à leurs plus hauts du jour.",
+  "orders": [
+    {
+      "symbol": "KO",
+      "action": "buy",
+      "quantity": 2,
+      "order_type": "limit",
+      "limit_price": 97.35,
+      "rationale": "Repli dans tendance haussière suivi de trois séances de reprise (95,67, 96,03 puis 96,88 $ en séance) alors que SPY baisse : force relative nette. Objectif vers 101,5 $ (+4,5 %), stop mécanique -3 % vers 94,4 $."
+    }
+  ],
+  "notes": "Suivi : toujours aucun ordre ni exécution chez IBKR, y compris pour le plan 2026-11-10T1510 (limite 96,60 $, que KO a dépassée). La chaîne d'exécution reste en panne ; VM en marche, logs SSH demandés à Johan, sans réponse. Pas de nouvelle notification pour ce plan : Johan a déjà été prévenu quatre fois du même problème. Compte : 434,03 USD, aucune position. Titres examinés : SPY, KO, PEP. PEP 143,6 $ repasse au-dessus de 143,5 $ : second choix si KO est pris."
+}
