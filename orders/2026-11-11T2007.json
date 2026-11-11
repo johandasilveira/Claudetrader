@@ -1,0 +1,17 @@
+{
+  "id": "2026-11-11T2007",
+  "created_at": "2026-11-11T20:07:00Z",
+  "expires_at": "2026-11-11T21:37:00Z",
+  "market_summary": "Le marché tient ses gains : SPY 760,3 $ (+1,4 %). KO au plus haut du jour à 97,34 $, au contact de sa résistance du 5 novembre (97,39 $).",
+  "orders": [
+    {
+      "symbol": "KO",
+      "action": "buy",
+      "quantity": 2,
+      "order_type": "limit",
+      "limit_price": 97.8,
+      "rationale": "Fin du repli et test de la résistance de 97,39 $ : une clôture au-dessus validerait la reprise de tendance. Objectif vers 102 $, stop mécanique -3 % vers 94,9 $."
+    }
+  ],
+  "notes": "Suivi : aucun ordre ni exécution chez IBKR aujourd'hui ; les plans 1508 et 1742 n'ont pas été transmis. Panne d'exécution depuis le 9 novembre, logs SSH toujours attendus. Pas de nouvelle notification. Compte : 434,03 USD, aucune position. Titres examinés : SPY, KO."
+}
