@@ -1,0 +1,17 @@
+{
+  "id": "2026-11-11T1508",
+  "created_at": "2026-11-11T15:08:00Z",
+  "expires_at": "2026-11-11T16:38:00Z",
+  "market_summary": "Ouverture en hausse : SPY 756,2 $ (+0,8 %), plus haut depuis la chute du 5 novembre. Les valeurs défensives cèdent un peu de terrain : KO 96,15 $, PEP 141,3 $.",
+  "orders": [
+    {
+      "symbol": "KO",
+      "action": "buy",
+      "quantity": 2,
+      "order_type": "limit",
+      "limit_price": 96.65,
+      "rationale": "Tendance haussière intacte depuis 85 $ ; reprise depuis le marteau du 6 novembre (93,05 $), petit repli à 96,15 $ aujourd'hui au-dessus du plus bas de lundi. Objectif vers 100,5 $, stop mécanique -3 % vers 93,8 $."
+    }
+  ],
+  "notes": "Suivi : troisième jour sans aucun ordre transmis à IBKR (aucun ordre, aucune exécution sur 7 jours) ; les plans des 9 et 10 novembre n'ont pas été exécutés. Johan a été relancé ; logs SSH toujours attendus. Compte : 434,03 USD, aucune position. Titres examinés : SPY, KO, PEP. PEP 141,3 $ retombe sous 143,5 $ : pas de sortie de fourchette."
+}
